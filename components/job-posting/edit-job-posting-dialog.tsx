@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   useDeleteJobPosting,
+  useJobPostings,
   useUpdateJobPosting,
 } from "@/hooks/use-job-postings";
 import { isApiError } from "@/lib/api/errors";
@@ -27,13 +28,13 @@ import type { JobPosting, JobPostingInput } from "@/types/job-posting";
 
 const FORM_ID = "edit-job-posting-form";
 
-export function EditJobPostingDialog({
-  jobPosting,
-}: {
-  /** 선택된 공고. 목록 캐시에서 찾지 못하면(삭제 직후 등) null이 온다. */
-  jobPosting: JobPosting | null;
-}) {
+export function EditJobPostingDialog() {
+  const selectedId = useUiStore((state) => state.selectedJobPostingId);
   const selectJobPosting = useUiStore((state) => state.selectJobPosting);
+  const { data } = useJobPostings();
+  // 목록 캐시에서 찾는다. 삭제 직후처럼 사라진 경우엔 null이 되어 닫힌다.
+  const jobPosting =
+    data?.find((candidate) => candidate.id === selectedId) ?? null;
   const update = useUpdateJobPosting();
   const remove = useDeleteJobPosting();
 

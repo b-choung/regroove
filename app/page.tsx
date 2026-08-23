@@ -1,4 +1,5 @@
 import { AddJobPostingButton } from "@/components/job-posting/add-job-posting-button";
+import { BoardDialogs } from "@/components/job-posting/board-dialogs";
 import { JobPostingBoard } from "@/components/job-posting/job-posting-board";
 import { SkillProfileButton } from "@/components/skills/skill-profile-button";
 import { Button } from "@/components/ui/button";
@@ -26,8 +27,11 @@ export default async function BoardPage() {
         </div>
       </header>
 
-      {/* 2주차: 이 보드를 dnd-kit DndContext로 감싸 드래그앤드롭을 붙인다. */}
       <JobPostingBoard />
+
+      {/* 모달은 보드 밖에 둔다. 보드 안에 있으면 목록 조회가 실패했을 때
+          헤더 버튼이 아무 일도 하지 않는다. */}
+      <BoardDialogs />
     </main>
   );
 }

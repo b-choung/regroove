@@ -14,11 +14,8 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { PlusIcon } from "lucide-react";
-import { CreateJobPostingDialog } from "@/components/job-posting/create-job-posting-dialog";
-import { EditJobPostingDialog } from "@/components/job-posting/edit-job-posting-dialog";
 import { JobPostingCard } from "@/components/job-posting/job-posting-card";
 import { KanbanColumn } from "@/components/job-posting/kanban-column";
-import { SkillProfileDialog } from "@/components/skills/skill-profile-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJobPostings, useMoveJobPosting } from "@/hooks/use-job-postings";
@@ -46,7 +43,6 @@ export function JobPostingBoard() {
   const { data, isPending, isError, error, refetch } = useJobPostings();
   const move = useMoveJobPosting();
   const openCreateDialog = useUiStore((state) => state.openCreateDialog);
-  const selectedId = useUiStore((state) => state.selectedJobPostingId);
   const draggingId = useUiStore((state) => state.draggingJobPostingId);
   const setDragging = useUiStore((state) => state.setDraggingJobPosting);
 
@@ -123,8 +119,6 @@ export function JobPostingBoard() {
   }
 
   const grouped = groupByStatus(jobPostings);
-  const selected: JobPosting | null =
-    jobPostings.find((jobPosting) => jobPosting.id === selectedId) ?? null;
   const dragging: JobPosting | null =
     jobPostings.find((jobPosting) => jobPosting.id === draggingId) ?? null;
 
@@ -169,10 +163,6 @@ export function JobPostingBoard() {
           )}
         </DragOverlay>
       </DndContext>
-
-      <CreateJobPostingDialog />
-      <EditJobPostingDialog jobPosting={selected} />
-      <SkillProfileDialog />
     </>
   );
 }

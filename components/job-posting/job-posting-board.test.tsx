@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useUiStore } from "@/stores/ui-store";
 import type { JobPosting } from "@/types/job-posting";
+import { AddJobPostingButton } from "./add-job-posting-button";
+import { BoardDialogs } from "./board-dialogs";
 import { JobPostingBoard } from "./job-posting-board";
 
 const jobPostings: JobPosting[] = [
@@ -48,6 +50,7 @@ const notes = [
   },
 ];
 
+/** 실제 페이지와 같은 구성으로 렌더한다. (헤더 버튼 + 보드 + 모달) */
 function renderBoard() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -55,7 +58,9 @@ function renderBoard() {
 
   render(
     <QueryClientProvider client={queryClient}>
+      <AddJobPostingButton />
       <JobPostingBoard />
+      <BoardDialogs />
     </QueryClientProvider>,
   );
 
@@ -166,6 +171,26 @@ describe("JobPostingBoard", () => {
 
     expect(await screen.findByText("1차 면접 9/15 14:00")).toBeInTheDocument();
     expect(screen.getByLabelText("새 메모")).toHaveValue("");
+  });
+
+  // 모달을 보드 안에 두면 목록 조회가 실패했을 때 트리에서 사라져 헤더 버튼이
+  // 아무 일도 하지 않는다. 공고를 못 불러올 때야말로 추가하고 싶은 상황이다.
+  it("목록 조회가 실패해도 공고 추가 모달은 열린다", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json(
+          { error: { code: "internal_error", message: "서버 오류" } },
+          { status: 500 },
+        ),
+      ),
+    );
+    const user = renderBoard();
+
+    await screen.findByText(/공고를 불러오지 못했습니다/);
+    await user.click(screen.getByRole("button", { name: /공고 추가/ }));
+
+    expect(await screen.findByRole("dialog")).toHaveTextContent("공고 추가");
   });
 
   it("공고가 없으면 첫 공고 추가 안내를 보여준다", async () => {
