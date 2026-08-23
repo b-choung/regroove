@@ -1,4 +1,5 @@
 import { ApiError } from "@/lib/api/errors";
+import { apiRequest } from "@/lib/api/request";
 import type {
   JobPosting,
   JobPostingInput,
@@ -14,22 +15,8 @@ import type {
 
 const BASE_PATH = "/api/job-postings";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: init?.body
-      ? { "content-type": "application/json", ...init.headers }
-      : init?.headers,
-  });
-
-  if (!response.ok) throw await ApiError.fromResponse(response);
-  if (response.status === 204) return undefined as T;
-
-  return (await response.json()) as T;
-}
-
 export async function fetchJobPostings(): Promise<JobPosting[]> {
-  const { jobPostings } = await request<{ jobPostings: JobPosting[] }>(
+  const { jobPostings } = await apiRequest<{ jobPostings: JobPosting[] }>(
     BASE_PATH,
   );
   return jobPostings;
@@ -38,10 +25,13 @@ export async function fetchJobPostings(): Promise<JobPosting[]> {
 export async function createJobPosting(
   input: JobPostingInput,
 ): Promise<JobPosting> {
-  const { jobPosting } = await request<{ jobPosting: JobPosting }>(BASE_PATH, {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+  const { jobPosting } = await apiRequest<{ jobPosting: JobPosting }>(
+    BASE_PATH,
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
   return jobPosting;
 }
 
@@ -49,7 +39,7 @@ export async function updateJobPosting(
   id: string,
   patch: JobPostingUpdate,
 ): Promise<JobPosting> {
-  const { jobPosting } = await request<{ jobPosting: JobPosting }>(
+  const { jobPosting } = await apiRequest<{ jobPosting: JobPosting }>(
     `${BASE_PATH}/${id}`,
     { method: "PATCH", body: JSON.stringify(patch) },
   );
@@ -57,7 +47,7 @@ export async function updateJobPosting(
 }
 
 export async function deleteJobPosting(id: string): Promise<void> {
-  await request<void>(`${BASE_PATH}/${id}`, { method: "DELETE" });
+  await apiRequest<void>(`${BASE_PATH}/${id}`, { method: "DELETE" });
 }
 
 /**
