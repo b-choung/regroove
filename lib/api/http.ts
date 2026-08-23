@@ -28,11 +28,33 @@ export function notFound(message = "요청한 공고를 찾을 수 없습니다.
 /** 예상하지 못한 서버/DB 오류. 원문은 서버 로그로만 남기고 클라이언트에는 감춘다. */
 export function internalError(context: string, cause: unknown) {
   console.error(`[api] ${context} — ${describeCause(cause)}`);
+
+  // 테이블이 없는 것은 "잠시 후 다시 시도"로 해결되지 않는다. 저장소를 클론한
+  // 사람이 반드시 한 번 겪는 상황이라, 무엇을 해야 하는지 그대로 알려준다.
+  if (isMissingTableError(cause)) {
+    return apiError(
+      503,
+      "schema_missing",
+      "DB 테이블이 없습니다. supabase/migrations/0001_init.sql을 Supabase SQL Editor에서 실행해주세요.",
+    );
+  }
+
   return apiError(
     500,
     "internal_error",
     "요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
   );
+}
+
+/**
+ * 스키마 미적용 여부.
+ * PGRST205: PostgREST가 스키마 캐시에서 테이블을 못 찾음.
+ * 42P01: Postgres undefined_table (RPC 등 직접 SQL 경로에서 온다).
+ */
+export function isMissingTableError(cause: unknown): boolean {
+  if (typeof cause !== "object" || cause === null) return false;
+  const code = (cause as { code?: unknown }).code;
+  return code === "PGRST205" || code === "42P01";
 }
 
 /**
@@ -53,7 +75,9 @@ function describeCause(cause: unknown): string {
       .filter(Boolean)
       .join(" ");
 
-    return [`${cause.name}: ${cause.message}`, extra].filter(Boolean).join(" | ");
+    return [`${cause.name}: ${cause.message}`, extra]
+      .filter(Boolean)
+      .join(" | ");
   }
 
   return typeof cause === "string" ? cause : JSON.stringify(cause);

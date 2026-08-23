@@ -11,6 +11,8 @@ export type ApiErrorCode =
   | "not_found"
   | "conflict"
   | "duplicate_url"
+  /** DB 스키마가 없음 = 마이그레이션 미적용. 코드 버그가 아니라 설치 문제다. */
+  | "schema_missing"
   | "internal_error";
 
 export interface ApiErrorBody {

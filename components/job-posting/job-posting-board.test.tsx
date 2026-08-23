@@ -187,10 +187,36 @@ describe("JobPostingBoard", () => {
     );
     const user = renderBoard();
 
-    await screen.findByText(/공고를 불러오지 못했습니다/);
+    await screen.findByText("서버 오류");
     await user.click(screen.getByRole("button", { name: /공고 추가/ }));
 
     expect(await screen.findByRole("dialog")).toHaveTextContent("공고 추가");
+  });
+
+  // 마이그레이션 미적용은 "다시 시도"로 해결되지 않는다. 무엇을 해야 하는지
+  // 화면에 그대로 나와야 한다.
+  it("DB 스키마가 없으면 설치 안내를 보여준다", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json(
+          {
+            error: {
+              code: "schema_missing",
+              message:
+                "DB 테이블이 없습니다. supabase/migrations/0001_init.sql을 Supabase SQL Editor에서 실행해주세요.",
+            },
+          },
+          { status: 503 },
+        ),
+      ),
+    );
+    renderBoard();
+
+    expect(await screen.findByText(/0001_init.sql/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "다시 시도" }),
+    ).not.toBeInTheDocument();
   });
 
   it("공고가 없으면 첫 공고 추가 안내를 보여준다", async () => {
