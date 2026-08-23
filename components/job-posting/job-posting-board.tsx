@@ -18,6 +18,7 @@ import { CreateJobPostingDialog } from "@/components/job-posting/create-job-post
 import { EditJobPostingDialog } from "@/components/job-posting/edit-job-posting-dialog";
 import { JobPostingCard } from "@/components/job-posting/job-posting-card";
 import { KanbanColumn } from "@/components/job-posting/kanban-column";
+import { SkillProfileDialog } from "@/components/skills/skill-profile-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJobPostings, useMoveJobPosting } from "@/hooks/use-job-postings";
@@ -171,6 +172,7 @@ export function JobPostingBoard() {
 
       <CreateJobPostingDialog />
       <EditJobPostingDialog jobPosting={selected} />
+      <SkillProfileDialog />
     </>
   );
 }

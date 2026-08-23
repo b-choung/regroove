@@ -69,16 +69,26 @@ beforeEach(() => {
     draggingJobPostingId: null,
   });
 
-  // 보드는 공고 목록을, 상세 다이얼로그는 메모를 각각 요청한다.
+  stubApi();
+});
+
+/** 보드는 공고 목록·스킬 프로필을, 상세 다이얼로그는 메모를 각각 요청한다. */
+function stubApi({ skills = [] as string[] } = {}) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (path: string) =>
-      path.endsWith("/notes")
-        ? Response.json({ notes })
-        : Response.json({ jobPostings }),
-    ),
+    vi.fn(async (path: string) => {
+      if (path.endsWith("/notes")) return Response.json({ notes });
+      if (path.includes("/api/skill-profile")) {
+        return Response.json({
+          skillProfile: skills.length
+            ? { userId: "u", skills, experienceYears: 3 }
+            : null,
+        });
+      }
+      return Response.json({ jobPostings });
+    }),
   );
-});
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -105,6 +115,22 @@ describe("JobPostingBoard", () => {
         name: "프론트엔드 개발자 카드 옮기기",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("스킬 프로필이 있으면 카드에 매칭률을 보여준다", async () => {
+    // 공고 요구 스택은 TypeScript·React, 내 스택은 표기가 다른 typescript 하나.
+    stubApi({ skills: ["typescript"] });
+    renderBoard();
+
+    expect(await screen.findByText("스킬 50%")).toBeInTheDocument();
+  });
+
+  // 프로필이 없을 때 모든 카드에 0%가 붙으면 정보가 아니라 잡음이다.
+  it("스킬 프로필이 없으면 매칭률을 그리지 않는다", async () => {
+    renderBoard();
+
+    await screen.findByRole("region", { name: /관심/ });
+    expect(screen.queryByText(/스킬 \d+%/)).not.toBeInTheDocument();
   });
 
   it("빈 컬럼에도 드롭 안내를 남긴다", async () => {

@@ -130,6 +130,17 @@ export const jobPostingUpdateSchema = z
 
 export type JobPostingUpdate = z.infer<typeof jobPostingUpdateSchema>;
 
+export const userSkillProfileInputSchema = z.object({
+  skills: z.array(z.string().min(1)).default([]),
+  experienceYears: z
+    .number()
+    .min(0, "경력은 0년 이상이어야 합니다.")
+    .max(70, "경력 값을 확인해주세요.")
+    .default(0),
+});
+
+export type UserSkillProfileInput = z.infer<typeof userSkillProfileInputSchema>;
+
 export const noteInputSchema = z.object({
   content: z.string().min(1, "메모 내용을 입력해주세요."),
 });

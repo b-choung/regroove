@@ -11,9 +11,13 @@ interface UiState {
   selectedJobPostingId: string | null;
   /** 드래그 중인 카드 id. DragOverlay 렌더링에 사용한다. */
   draggingJobPostingId: string | null;
+  /** 내 스킬 프로필 편집 모달 열림 여부 */
+  isSkillProfileDialogOpen: boolean;
 
   openCreateDialog: () => void;
   closeCreateDialog: () => void;
+  openSkillProfileDialog: () => void;
+  closeSkillProfileDialog: () => void;
   selectJobPosting: (id: string | null) => void;
   setDraggingJobPosting: (id: string | null) => void;
 }
@@ -22,9 +26,12 @@ export const useUiStore = create<UiState>((set) => ({
   isCreateDialogOpen: false,
   selectedJobPostingId: null,
   draggingJobPostingId: null,
+  isSkillProfileDialogOpen: false,
 
   openCreateDialog: () => set({ isCreateDialogOpen: true }),
   closeCreateDialog: () => set({ isCreateDialogOpen: false }),
+  openSkillProfileDialog: () => set({ isSkillProfileDialogOpen: true }),
+  closeSkillProfileDialog: () => set({ isSkillProfileDialogOpen: false }),
   selectJobPosting: (id) => set({ selectedJobPostingId: id }),
   setDraggingJobPosting: (id) => set({ draggingJobPostingId: id }),
 }));

@@ -1,5 +1,6 @@
 import { AddJobPostingButton } from "@/components/job-posting/add-job-posting-button";
 import { JobPostingBoard } from "@/components/job-posting/job-posting-board";
+import { SkillProfileButton } from "@/components/skills/skill-profile-button";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/supabase/server";
 
@@ -15,6 +16,7 @@ export default async function BoardPage() {
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
         <div className="flex items-center gap-2">
+          <SkillProfileButton />
           <AddJobPostingButton />
           <form action="/auth/signout" method="post">
             <Button type="submit" variant="outline" size="sm">

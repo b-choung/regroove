@@ -7,6 +7,7 @@ import {
   toFormValues,
 } from "@/components/job-posting/job-posting-form";
 import { JobPostingNotes } from "@/components/job-posting/job-posting-notes";
+import { SkillMatchSummary } from "@/components/skills/skill-match-summary";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -107,6 +108,10 @@ export function EditJobPostingDialog({
             }
             onSubmit={handleSubmit}
           />
+        )}
+
+        {jobPosting && (
+          <SkillMatchSummary requiredSkills={jobPosting.requiredSkills} />
         )}
 
         {jobPosting && <JobPostingNotes jobPostingId={jobPosting.id} />}
