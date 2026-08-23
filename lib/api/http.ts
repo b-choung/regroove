@@ -27,12 +27,36 @@ export function notFound(message = "요청한 공고를 찾을 수 없습니다.
 
 /** 예상하지 못한 서버/DB 오류. 원문은 서버 로그로만 남기고 클라이언트에는 감춘다. */
 export function internalError(context: string, cause: unknown) {
-  console.error(`[api] ${context}`, cause);
+  console.error(`[api] ${context} — ${describeCause(cause)}`);
   return apiError(
     500,
     "internal_error",
     "요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
   );
+}
+
+/**
+ * 원인을 사람이 읽을 수 있는 한 줄로 만든다.
+ *
+ * 객체를 그대로 console.error에 넘기면 안 된다. Supabase의 PostgrestError는
+ * Error를 상속하고 Error의 속성은 non-enumerable이라, 로거가 JSON으로 직렬화하면
+ * `{}`만 남는다. 실제로 "테이블이 없다"는 원인이 이 때문에 며칠간 가려져 있었다.
+ */
+function describeCause(cause: unknown): string {
+  if (cause instanceof Error) {
+    // Supabase가 얹어 주는 code/details/hint까지 함께 남긴다.
+    const extra = ["code", "details", "hint"]
+      .map((key) => {
+        const value = (cause as unknown as Record<string, unknown>)[key];
+        return value ? `${key}=${String(value)}` : null;
+      })
+      .filter(Boolean)
+      .join(" ");
+
+    return [`${cause.name}: ${cause.message}`, extra].filter(Boolean).join(" | ");
+  }
+
+  return typeof cause === "string" ? cause : JSON.stringify(cause);
 }
 
 /**
