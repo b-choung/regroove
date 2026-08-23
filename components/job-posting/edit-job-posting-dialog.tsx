@@ -1,0 +1,132 @@
+"use client";
+
+import { toast } from "sonner";
+import {
+  JobPostingForm,
+  toFormValues,
+} from "@/components/job-posting/job-posting-form";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  useDeleteJobPosting,
+  useUpdateJobPosting,
+} from "@/hooks/use-job-postings";
+import { isApiError } from "@/lib/api/errors";
+import { useUiStore } from "@/stores/ui-store";
+import type { JobPosting, JobPostingInput } from "@/types/job-posting";
+
+const FORM_ID = "edit-job-posting-form";
+
+export function EditJobPostingDialog({
+  jobPosting,
+}: {
+  /** 선택된 공고. 목록 캐시에서 찾지 못하면(삭제 직후 등) null이 온다. */
+  jobPosting: JobPosting | null;
+}) {
+  const selectJobPosting = useUiStore((state) => state.selectJobPosting);
+  const update = useUpdateJobPosting();
+  const remove = useDeleteJobPosting();
+
+  function close() {
+    selectJobPosting(null);
+    update.reset();
+  }
+
+  function handleSubmit(input: JobPostingInput) {
+    if (!jobPosting) return;
+
+    update.mutate(
+      {
+        id: jobPosting.id,
+        // 낙관적 잠금: 이 화면이 보고 있던 시점 이후에 바뀌었으면 409로 돌아온다.
+        patch: { ...input, expectedUpdatedAt: jobPosting.updatedAt },
+      },
+      {
+        onSuccess: close,
+        onError: (error) => {
+          if (isApiError(error) && error.fields) return;
+          // 충돌 안내는 훅에서 최신 상태로 갱신하며 함께 띄운다.
+          if (isApiError(error) && error.code === "conflict") {
+            close();
+            return;
+          }
+          toast.error("공고를 수정하지 못했습니다.", {
+            description: error.message,
+          });
+        },
+      },
+    );
+  }
+
+  function handleDelete() {
+    if (!jobPosting) return;
+
+    remove.mutate(jobPosting.id, {
+      onSuccess: close,
+      onError: (error) =>
+        toast.error("공고를 삭제하지 못했습니다.", {
+          description: error.message,
+        }),
+    });
+  }
+
+  const isBusy = update.isPending || remove.isPending;
+
+  return (
+    <Dialog
+      open={jobPosting !== null}
+      onOpenChange={(open) => {
+        if (!open) close();
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>공고 수정</DialogTitle>
+          <DialogDescription>
+            {jobPosting?.company} · {jobPosting?.title}
+          </DialogDescription>
+        </DialogHeader>
+
+        {jobPosting && (
+          <JobPostingForm
+            // 다른 카드를 열면 폼 상태를 그 공고 값으로 갈아끼운다.
+            key={`${jobPosting.id}:${jobPosting.updatedAt}`}
+            formId={FORM_ID}
+            initialValues={toFormValues(jobPosting)}
+            serverFieldErrors={
+              isApiError(update.error) ? update.error.fields : undefined
+            }
+            onSubmit={handleSubmit}
+          />
+        )}
+
+        <DialogFooter className="sm:justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={handleDelete}
+            disabled={isBusy}
+          >
+            삭제
+          </Button>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <Button type="button" variant="outline" onClick={close}>
+              취소
+            </Button>
+            <Button type="submit" form={FORM_ID} disabled={isBusy}>
+              {update.isPending ? "저장 중..." : "저장"}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

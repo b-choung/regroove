@@ -46,6 +46,15 @@ export async function updateSession(request: NextRequest) {
   );
 
   if (!user && !isPublic) {
+    // API 요청을 /login으로 리다이렉트하면 fetch가 HTML을 받아 JSON 파싱에서
+    // 엉뚱한 에러가 난다. 세션이 끊긴 것을 클라이언트가 알아볼 수 있게 401을 준다.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: { code: "unauthorized", message: "로그인이 필요합니다." } },
+        { status: 401 },
+      );
+    }
+
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);

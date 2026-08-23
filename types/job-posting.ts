@@ -32,6 +32,11 @@ export const KANBAN_COLUMNS: ReadonlyArray<{
   { status: "result", label: "결과" },
 ];
 
+/** Select에서 값 대신 라벨을 보여주려면 value→label 맵이 필요하다. */
+export const JOB_STATUS_LABELS = Object.fromEntries(
+  KANBAN_COLUMNS.map((column) => [column.status, column.label]),
+) as Record<JobStatus, string>;
+
 export const JOB_SOURCE_LABELS: Record<JobSource, string> = {
   saramin: "사람인",
   wanted: "원티드",
