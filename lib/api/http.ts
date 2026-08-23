@@ -1,29 +1,12 @@
 import { NextResponse } from "next/server";
 import { z, type ZodType } from "zod";
+import type { ApiErrorBody, ApiErrorCode } from "@/lib/api/errors";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 /**
- * API Route 공용 응답/에러 규약.
- *
- * 클라이언트(`lib/api/job-postings.ts`)가 status code 대신 `error.code`로
- * 분기하므로, 새 실패 케이스를 만들 때는 반드시 여기에 코드를 추가한다.
+ * API Route 공용 응답 헬퍼. 에러 코드 정의는 `lib/api/errors.ts`에 있다.
+ * (그 파일은 클라이언트도 import하므로 서버 전용 코드를 두지 않는다.)
  */
-export type ApiErrorCode =
-  | "unauthorized"
-  | "invalid_request"
-  | "not_found"
-  | "conflict"
-  | "duplicate_url"
-  | "internal_error";
-
-export interface ApiErrorBody {
-  error: {
-    code: ApiErrorCode;
-    message: string;
-    /** invalid_request일 때 필드별 메시지. 폼에서 인라인 에러로 보여준다. */
-    fields?: Record<string, string[]>;
-  };
-}
 
 export function apiError(
   status: number,
