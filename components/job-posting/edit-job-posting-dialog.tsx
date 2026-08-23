@@ -5,6 +5,7 @@ import {
   JobPostingForm,
   toFormValues,
 } from "@/components/job-posting/job-posting-form";
+import { JobPostingNotes } from "@/components/job-posting/job-posting-notes";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -86,9 +87,10 @@ export function EditJobPostingDialog({
         if (!open) close();
       }}
     >
-      <DialogContent className="sm:max-w-lg">
+      {/* 폼과 메모가 함께 들어가 길어지므로 내용만 스크롤시킨다. */}
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>공고 수정</DialogTitle>
+          <DialogTitle>공고 상세</DialogTitle>
           <DialogDescription>
             {jobPosting?.company} · {jobPosting?.title}
           </DialogDescription>
@@ -106,6 +108,8 @@ export function EditJobPostingDialog({
             onSubmit={handleSubmit}
           />
         )}
+
+        {jobPosting && <JobPostingNotes jobPostingId={jobPosting.id} />}
 
         <DialogFooter className="sm:justify-between">
           <Button

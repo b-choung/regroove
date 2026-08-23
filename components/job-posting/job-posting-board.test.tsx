@@ -39,6 +39,15 @@ const jobPostings: JobPosting[] = [
   },
 ];
 
+const notes = [
+  {
+    id: "33333333-3333-3333-3333-333333333333",
+    jobPostingId: "11111111-1111-1111-1111-111111111111",
+    content: "1차 면접 9/15 14:00",
+    createdAt: "2026-08-03T00:00:00.000Z",
+  },
+];
+
 function renderBoard() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -60,13 +69,13 @@ beforeEach(() => {
     draggingJobPostingId: null,
   });
 
+  // 보드는 공고 목록을, 상세 다이얼로그는 메모를 각각 요청한다.
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () =>
-      Response.json(
-        { jobPostings },
-        { headers: { "content-type": "application/json" } },
-      ),
+    vi.fn(async (path: string) =>
+      path.endsWith("/notes")
+        ? Response.json({ notes })
+        : Response.json({ jobPostings }),
     ),
   );
 });
@@ -88,19 +97,49 @@ describe("JobPostingBoard", () => {
     expect(interested).not.toHaveTextContent("웹 프론트엔드");
   });
 
+  it("카드마다 드래그 손잡이를 제공한다", async () => {
+    renderBoard();
+
+    expect(
+      await screen.findByRole("button", {
+        name: "프론트엔드 개발자 카드 옮기기",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("빈 컬럼에도 드롭 안내를 남긴다", async () => {
+    renderBoard();
+
+    const applied = await screen.findByRole("region", { name: /지원 완료/ });
+    expect(applied).toHaveTextContent("여기로 카드를 옮겨 보세요");
+  });
+
   it("카드를 누르면 그 공고의 수정 다이얼로그가 열린다", async () => {
     const user = renderBoard();
 
+    // 카드 본문 버튼과 드래그 손잡이가 둘 다 카드 제목을 이름에 담고 있어
+    // 정확한 이름으로 구분한다.
     await user.click(
-      await screen.findByRole("button", { name: /프론트엔드 개발자/ }),
+      await screen.findByRole("button", { name: "토스 프론트엔드 개발자" }),
     );
 
     const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("공고 수정");
+    expect(dialog).toHaveTextContent("공고 상세");
     expect(dialog).toHaveTextContent("토스 · 프론트엔드 개발자");
     await waitFor(() =>
       expect(screen.getByLabelText("회사명")).toHaveValue("토스"),
     );
+  });
+
+  it("상세 다이얼로그에서 그 공고의 메모를 보여준다", async () => {
+    const user = renderBoard();
+
+    await user.click(
+      await screen.findByRole("button", { name: "토스 프론트엔드 개발자" }),
+    );
+
+    expect(await screen.findByText("1차 면접 9/15 14:00")).toBeInTheDocument();
+    expect(screen.getByLabelText("새 메모")).toHaveValue("");
   });
 
   it("공고가 없으면 첫 공고 추가 안내를 보여준다", async () => {
