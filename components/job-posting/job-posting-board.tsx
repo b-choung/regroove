@@ -14,13 +14,12 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { PlusIcon } from "lucide-react";
-import { CreateJobPostingDialog } from "@/components/job-posting/create-job-posting-dialog";
-import { EditJobPostingDialog } from "@/components/job-posting/edit-job-posting-dialog";
 import { JobPostingCard } from "@/components/job-posting/job-posting-card";
 import { KanbanColumn } from "@/components/job-posting/kanban-column";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJobPostings, useMoveJobPosting } from "@/hooks/use-job-postings";
+import { isApiError } from "@/lib/api/errors";
 import {
   createAnnouncements,
   screenReaderInstructions,
@@ -45,7 +44,6 @@ export function JobPostingBoard() {
   const { data, isPending, isError, error, refetch } = useJobPostings();
   const move = useMoveJobPosting();
   const openCreateDialog = useUiStore((state) => state.openCreateDialog);
-  const selectedId = useUiStore((state) => state.selectedJobPostingId);
   const draggingId = useUiStore((state) => state.draggingJobPostingId);
   const setDragging = useUiStore((state) => state.setDraggingJobPosting);
 
@@ -109,21 +107,25 @@ export function JobPostingBoard() {
   if (isPending) return <BoardSkeleton />;
 
   if (isError) {
+    // 서버가 준 메시지를 그대로 보여준다. "공고를 불러오지 못했습니다"를 앞에
+    // 덧붙이면 설치 안내(스키마 미적용) 같은 구체적인 문구가 일반 문구에 묻힌다.
+    const isSetupProblem = isApiError(error) && error.code === "schema_missing";
+
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8">
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center">
         <p className="text-sm text-muted-foreground">
-          공고를 불러오지 못했습니다. {error.message}
+          {isApiError(error) ? error.message : "공고를 불러오지 못했습니다."}
         </p>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          다시 시도
-        </Button>
+        {!isSetupProblem && (
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            다시 시도
+          </Button>
+        )}
       </div>
     );
   }
 
   const grouped = groupByStatus(jobPostings);
-  const selected: JobPosting | null =
-    jobPostings.find((jobPosting) => jobPosting.id === selectedId) ?? null;
   const dragging: JobPosting | null =
     jobPostings.find((jobPosting) => jobPosting.id === draggingId) ?? null;
 
@@ -168,9 +170,6 @@ export function JobPostingBoard() {
           )}
         </DragOverlay>
       </DndContext>
-
-      <CreateJobPostingDialog />
-      <EditJobPostingDialog jobPosting={selected} />
     </>
   );
 }

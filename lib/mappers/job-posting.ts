@@ -8,6 +8,7 @@ import type {
   JobPostingInput,
   Note,
   UserSkillProfile,
+  UserSkillProfileInput,
 } from "@/types/job-posting";
 
 /** DB row(snake_case) → 도메인 객체(camelCase) */
@@ -79,9 +80,19 @@ export function toNote(row: NoteRow): Note {
   };
 }
 
-export function toUserSkillProfile(
-  row: UserSkillProfileRow,
-): UserSkillProfile {
+/** 도메인 입력 → DB upsert payload (사용자당 1행) */
+export function toUserSkillProfileUpsert(
+  input: UserSkillProfileInput,
+  userId: string,
+): Omit<UserSkillProfileRow, "created_at" | "updated_at"> {
+  return {
+    user_id: userId,
+    skills: input.skills,
+    experience_years: input.experienceYears,
+  };
+}
+
+export function toUserSkillProfile(row: UserSkillProfileRow): UserSkillProfile {
   return {
     userId: row.user_id,
     skills: row.skills,

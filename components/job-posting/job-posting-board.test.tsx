@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useUiStore } from "@/stores/ui-store";
 import type { JobPosting } from "@/types/job-posting";
+import { AddJobPostingButton } from "./add-job-posting-button";
+import { BoardDialogs } from "./board-dialogs";
 import { JobPostingBoard } from "./job-posting-board";
 
 const jobPostings: JobPosting[] = [
@@ -48,6 +50,7 @@ const notes = [
   },
 ];
 
+/** 실제 페이지와 같은 구성으로 렌더한다. (헤더 버튼 + 보드 + 모달) */
 function renderBoard() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -55,7 +58,9 @@ function renderBoard() {
 
   render(
     <QueryClientProvider client={queryClient}>
+      <AddJobPostingButton />
       <JobPostingBoard />
+      <BoardDialogs />
     </QueryClientProvider>,
   );
 
@@ -69,16 +74,26 @@ beforeEach(() => {
     draggingJobPostingId: null,
   });
 
-  // 보드는 공고 목록을, 상세 다이얼로그는 메모를 각각 요청한다.
+  stubApi();
+});
+
+/** 보드는 공고 목록·스킬 프로필을, 상세 다이얼로그는 메모를 각각 요청한다. */
+function stubApi({ skills = [] as string[] } = {}) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (path: string) =>
-      path.endsWith("/notes")
-        ? Response.json({ notes })
-        : Response.json({ jobPostings }),
-    ),
+    vi.fn(async (path: string) => {
+      if (path.endsWith("/notes")) return Response.json({ notes });
+      if (path.includes("/api/skill-profile")) {
+        return Response.json({
+          skillProfile: skills.length
+            ? { userId: "u", skills, experienceYears: 3 }
+            : null,
+        });
+      }
+      return Response.json({ jobPostings });
+    }),
   );
-});
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -105,6 +120,22 @@ describe("JobPostingBoard", () => {
         name: "프론트엔드 개발자 카드 옮기기",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("스킬 프로필이 있으면 카드에 매칭률을 보여준다", async () => {
+    // 공고 요구 스택은 TypeScript·React, 내 스택은 표기가 다른 typescript 하나.
+    stubApi({ skills: ["typescript"] });
+    renderBoard();
+
+    expect(await screen.findByText("스킬 50%")).toBeInTheDocument();
+  });
+
+  // 프로필이 없을 때 모든 카드에 0%가 붙으면 정보가 아니라 잡음이다.
+  it("스킬 프로필이 없으면 매칭률을 그리지 않는다", async () => {
+    renderBoard();
+
+    await screen.findByRole("region", { name: /관심/ });
+    expect(screen.queryByText(/스킬 \d+%/)).not.toBeInTheDocument();
   });
 
   it("빈 컬럼에도 드롭 안내를 남긴다", async () => {
@@ -140,6 +171,52 @@ describe("JobPostingBoard", () => {
 
     expect(await screen.findByText("1차 면접 9/15 14:00")).toBeInTheDocument();
     expect(screen.getByLabelText("새 메모")).toHaveValue("");
+  });
+
+  // 모달을 보드 안에 두면 목록 조회가 실패했을 때 트리에서 사라져 헤더 버튼이
+  // 아무 일도 하지 않는다. 공고를 못 불러올 때야말로 추가하고 싶은 상황이다.
+  it("목록 조회가 실패해도 공고 추가 모달은 열린다", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json(
+          { error: { code: "internal_error", message: "서버 오류" } },
+          { status: 500 },
+        ),
+      ),
+    );
+    const user = renderBoard();
+
+    await screen.findByText("서버 오류");
+    await user.click(screen.getByRole("button", { name: /공고 추가/ }));
+
+    expect(await screen.findByRole("dialog")).toHaveTextContent("공고 추가");
+  });
+
+  // 마이그레이션 미적용은 "다시 시도"로 해결되지 않는다. 무엇을 해야 하는지
+  // 화면에 그대로 나와야 한다.
+  it("DB 스키마가 없으면 설치 안내를 보여준다", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json(
+          {
+            error: {
+              code: "schema_missing",
+              message:
+                "DB 테이블이 없습니다. supabase/migrations/0001_init.sql을 Supabase SQL Editor에서 실행해주세요.",
+            },
+          },
+          { status: 503 },
+        ),
+      ),
+    );
+    renderBoard();
+
+    expect(await screen.findByText(/0001_init.sql/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "다시 시도" }),
+    ).not.toBeInTheDocument();
   });
 
   it("공고가 없으면 첫 공고 추가 안내를 보여준다", async () => {

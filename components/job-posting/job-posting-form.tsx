@@ -76,7 +76,14 @@ function toInput(values: JobPostingFormValues) {
 interface JobPostingFormProps {
   /** 다이얼로그 푸터의 제출 버튼이 form 밖에 있어서 id로 연결한다. */
   formId: string;
-  initialValues: JobPostingFormValues;
+  /**
+   * 입력값은 부모가 들고 있는다(controlled).
+   *
+   * 폼이 자체 state를 쥐고 있으면, URL 파싱 결과를 채우려는 부모가 사용자의
+   * 진행 중인 입력을 볼 수 없어 그대로 날려버린다. 실제로 그렇게 한 번 깨졌다.
+   */
+  values: JobPostingFormValues;
+  onChange: (values: JobPostingFormValues) => void;
   /** 서버가 돌려준 필드별 에러(invalid_request). */
   serverFieldErrors?: Record<string, string[]>;
   onSubmit: (input: JobPostingInput) => void;
@@ -84,18 +91,19 @@ interface JobPostingFormProps {
 
 export function JobPostingForm({
   formId,
-  initialValues,
+  values,
+  onChange,
   serverFieldErrors,
   onSubmit,
 }: JobPostingFormProps) {
-  const [values, setValues] = useState(initialValues);
+  // 검증 결과는 폼의 관심사라 그대로 안에 둔다.
   const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   function update<K extends keyof JobPostingFormValues>(
     key: K,
     value: JobPostingFormValues[K],
   ) {
-    setValues((previous) => ({ ...previous, [key]: value }));
+    onChange({ ...values, [key]: value });
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

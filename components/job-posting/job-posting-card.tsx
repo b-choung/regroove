@@ -2,6 +2,7 @@
 
 import { ExternalLinkIcon } from "lucide-react";
 import { toast } from "sonner";
+import { SkillMatchBadge } from "@/components/skills/skill-match-badge";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -78,6 +79,8 @@ export function JobPostingCard({
         </button>
         {handle}
       </div>
+
+      <SkillMatchBadge requiredSkills={jobPosting.requiredSkills} />
 
       {jobPosting.requiredSkills.length > 0 && (
         <ul className="flex flex-wrap gap-1">

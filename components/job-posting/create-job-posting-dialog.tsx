@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import {
   JobPostingForm,
   toFormValues,
+  type JobPostingFormValues,
 } from "@/components/job-posting/job-posting-form";
+import { ParseNotice } from "@/components/job-posting/parse-notice";
+import { UrlImport } from "@/components/job-posting/url-import";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +22,7 @@ import { useCreateJobPosting } from "@/hooks/use-job-postings";
 import { isApiError } from "@/lib/api/errors";
 import { useUiStore } from "@/stores/ui-store";
 import type { JobPostingInput } from "@/types/job-posting";
+import type { ParsedJobPosting } from "@/types/parsing";
 
 const FORM_ID = "create-job-posting-form";
 
@@ -26,14 +30,34 @@ export function CreateJobPostingDialog() {
   const isOpen = useUiStore((state) => state.isCreateDialogOpen);
   const closeDialog = useUiStore((state) => state.closeCreateDialog);
   const { mutate, isPending, error, reset } = useCreateJobPosting();
-  // 닫았다 열면 이전 입력이 남지 않도록 form을 새로 mount 시킨다.
-  const [formKey, setFormKey] = useState(0);
+
+  const [values, setValues] = useState<JobPostingFormValues>(toFormValues);
+  const [parsed, setParsed] = useState<ParsedJobPosting | null>(null);
 
   function handleOpenChange(open: boolean) {
     if (open) return;
     closeDialog();
     reset();
-    setFormKey((key) => key + 1);
+    setValues(toFormValues());
+    setParsed(null);
+  }
+
+  /** 자동으로 채운 값만 덮어쓰고, 사용자가 이미 입력한 값은 남긴다. */
+  function handleImported(result: ParsedJobPosting) {
+    setValues((previous) => ({
+      ...previous,
+      url: result.url,
+      title: result.title ?? previous.title,
+      company: result.company ?? previous.company,
+      deadline: result.deadline ?? previous.deadline,
+      requiredSkills:
+        result.requiredSkills.length > 0
+          ? result.requiredSkills.join(", ")
+          : previous.requiredSkills,
+      source: result.source,
+      rawContent: result.rawContent ?? previous.rawContent,
+    }));
+    setParsed(result);
   }
 
   function handleSubmit(input: JobPostingInput) {
@@ -51,18 +75,21 @@ export function CreateJobPostingDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>공고 추가</DialogTitle>
           <DialogDescription>
-            URL 자동 파싱은 3주차에 붙습니다. 지금은 직접 입력해 저장합니다.
+            URL을 붙여넣어 자동으로 채우거나, 직접 입력해 저장합니다.
           </DialogDescription>
         </DialogHeader>
 
+        <UrlImport onImported={handleImported} />
+        {parsed && <ParseNotice parsed={parsed} />}
+
         <JobPostingForm
-          key={formKey}
           formId={FORM_ID}
-          initialValues={toFormValues()}
+          values={values}
+          onChange={setValues}
           serverFieldErrors={isApiError(error) ? error.fields : undefined}
           onSubmit={handleSubmit}
         />
