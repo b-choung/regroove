@@ -1,0 +1,117 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useUiStore } from "@/stores/ui-store";
+import type { JobPosting } from "@/types/job-posting";
+import { JobPostingBoard } from "./job-posting-board";
+
+const jobPostings: JobPosting[] = [
+  {
+    id: "11111111-1111-1111-1111-111111111111",
+    userId: "99999999-9999-9999-9999-999999999999",
+    url: "https://www.wanted.co.kr/wd/12345",
+    company: "토스",
+    title: "프론트엔드 개발자",
+    deadline: "2026-09-30",
+    requiredSkills: ["TypeScript", "React"],
+    status: "interested",
+    source: "wanted",
+    rawContent: null,
+    position: 1024,
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222222",
+    userId: "99999999-9999-9999-9999-999999999999",
+    url: null,
+    company: "카카오",
+    title: "웹 프론트엔드",
+    deadline: null,
+    requiredSkills: [],
+    status: "interview",
+    source: "saramin",
+    rawContent: null,
+    position: 1024,
+    createdAt: "2026-08-02T00:00:00.000Z",
+    updatedAt: "2026-08-02T00:00:00.000Z",
+  },
+];
+
+function renderBoard() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  render(
+    <QueryClientProvider client={queryClient}>
+      <JobPostingBoard />
+    </QueryClientProvider>,
+  );
+
+  return userEvent.setup();
+}
+
+beforeEach(() => {
+  useUiStore.setState({
+    isCreateDialogOpen: false,
+    selectedJobPostingId: null,
+    draggingJobPostingId: null,
+  });
+
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () =>
+      Response.json(
+        { jobPostings },
+        { headers: { "content-type": "application/json" } },
+      ),
+    ),
+  );
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("JobPostingBoard", () => {
+  it("공고를 상태별 컬럼에 나눠 렌더링한다", async () => {
+    renderBoard();
+
+    const interested = await screen.findByRole("region", { name: /관심/ });
+    const interview = screen.getByRole("region", { name: /면접/ });
+
+    expect(interested).toHaveTextContent("프론트엔드 개발자");
+    expect(interested).toHaveTextContent("토스");
+    expect(interview).toHaveTextContent("웹 프론트엔드");
+    expect(interested).not.toHaveTextContent("웹 프론트엔드");
+  });
+
+  it("카드를 누르면 그 공고의 수정 다이얼로그가 열린다", async () => {
+    const user = renderBoard();
+
+    await user.click(
+      await screen.findByRole("button", { name: /프론트엔드 개발자/ }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("공고 수정");
+    expect(dialog).toHaveTextContent("토스 · 프론트엔드 개발자");
+    await waitFor(() =>
+      expect(screen.getByLabelText("회사명")).toHaveValue("토스"),
+    );
+  });
+
+  it("공고가 없으면 첫 공고 추가 안내를 보여준다", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ jobPostings: [] })),
+    );
+    renderBoard();
+
+    expect(
+      await screen.findByText("아직 등록한 공고가 없습니다."),
+    ).toBeInTheDocument();
+  });
+});

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { JobPostingRow } from "@/types/database";
-import { jobPostingInputSchema } from "@/types/job-posting";
+import {
+  jobPostingInputSchema,
+  jobPostingUpdateSchema,
+} from "@/types/job-posting";
 import { toJobPosting, toJobPostingUpdate } from "./job-posting";
 
 const row: JobPostingRow = {
@@ -72,6 +75,40 @@ describe("jobPostingInputSchema", () => {
       company: "토스",
       title: "FE 개발자",
       deadline: "2026/09/30",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("jobPostingUpdateSchema", () => {
+  // 생성용 스키마를 그대로 partial()하면 기본값이 남아, 한 필드만 PATCH 해도
+  // 나머지가 기본값으로 덮어써진다. 그 회귀를 막는 테스트다.
+  it("보내지 않은 필드에 기본값을 채우지 않는다", () => {
+    expect(jobPostingUpdateSchema.parse({ status: "interview" })).toEqual({
+      status: "interview",
+    });
+  });
+
+  // DB에서 읽은 updated_at을 그대로 되돌려보내는 것이 낙관적 잠금의 전제라서,
+  // Postgres timestamptz의 오프셋 표기를 반드시 통과시켜야 한다.
+  it("timestamptz 오프셋 표기의 expectedUpdatedAt을 허용한다", () => {
+    const result = jobPostingUpdateSchema.safeParse({
+      status: "interview",
+      expectedUpdatedAt: "2026-08-23T06:00:00.123456+00:00",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("Z로 끝나는 expectedUpdatedAt도 허용한다", () => {
+    const result = jobPostingUpdateSchema.safeParse({
+      expectedUpdatedAt: "2026-08-23T06:00:00.123Z",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("날짜만 있는 expectedUpdatedAt은 거부한다", () => {
+    const result = jobPostingUpdateSchema.safeParse({
+      expectedUpdatedAt: "2026-08-23",
     });
     expect(result.success).toBe(false);
   });
