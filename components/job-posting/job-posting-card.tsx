@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useUpdateJobPosting } from "@/hooks/use-job-postings";
 import { isApiError } from "@/lib/api/errors";
+import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
 import {
   JOB_SOURCE_LABELS,
@@ -24,7 +25,16 @@ import {
 /** 카드에 나열할 기술스택 개수. 넘치면 +n으로 접는다. */
 const VISIBLE_SKILLS = 3;
 
-export function JobPostingCard({ jobPosting }: { jobPosting: JobPosting }) {
+export function JobPostingCard({
+  jobPosting,
+  handle,
+  className,
+}: {
+  jobPosting: JobPosting;
+  /** 드래그 손잡이. 정렬 래퍼가 주입하고, DragOverlay 미리보기에서는 비어 있다. */
+  handle?: React.ReactNode;
+  className?: string;
+}) {
   const selectJobPosting = useUiStore((state) => state.selectJobPosting);
   const { mutate, isPending } = useUpdateJobPosting();
 
@@ -51,15 +61,23 @@ export function JobPostingCard({ jobPosting }: { jobPosting: JobPosting }) {
   const hiddenSkillCount = jobPosting.requiredSkills.length - VISIBLE_SKILLS;
 
   return (
-    <article className="flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-xs">
-      <button
-        type="button"
-        className="space-y-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-        onClick={() => selectJobPosting(jobPosting.id)}
-      >
-        <p className="text-xs text-muted-foreground">{jobPosting.company}</p>
-        <p className="text-sm leading-snug font-medium">{jobPosting.title}</p>
-      </button>
+    <article
+      className={cn(
+        "flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-xs",
+        className,
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <button
+          type="button"
+          className="flex-1 space-y-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          onClick={() => selectJobPosting(jobPosting.id)}
+        >
+          <p className="text-xs text-muted-foreground">{jobPosting.company}</p>
+          <p className="text-sm leading-snug font-medium">{jobPosting.title}</p>
+        </button>
+        {handle}
+      </div>
 
       {jobPosting.requiredSkills.length > 0 && (
         <ul className="flex flex-wrap gap-1">
