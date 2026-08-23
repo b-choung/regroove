@@ -108,7 +108,7 @@ npm install
 
 # 환경변수 설정
 cp .env.example .env.local
-# SUPABASE_URL, SUPABASE_ANON_KEY, ANTHROPIC_API_KEY 입력
+# NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, ANTHROPIC_API_KEY 입력
 
 # 개발 서버 실행
 npm run dev

@@ -15,11 +15,11 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(
     `NEXT_PUBLIC_SUPABASE_URL이 비어 있거나 URL 형식이 아닙니다. Supabase 대시보드 > Connect에서 Project URL을 복사해 ${SETUP_HINT}`,
   ),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
     .string()
     .min(
       1,
-      `NEXT_PUBLIC_SUPABASE_ANON_KEY가 비어 있습니다. Supabase 대시보드 > Settings > API Keys의 Publishable key를 복사해 ${SETUP_HINT}`,
+      `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY가 비어 있습니다. Supabase 대시보드 > Settings > API Keys의 Publishable key를 복사해 ${SETUP_HINT}`,
     ),
 });
 
@@ -37,7 +37,8 @@ export function publicEnv() {
   // 구조 분해나 동적 접근이 아니라 리터럴로 참조해야 한다.
   return publicEnvSchema.parse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   });
 }
 
