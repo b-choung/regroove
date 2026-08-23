@@ -38,6 +38,12 @@ import {
  * 거의 없다. 이미 채운 필드는 known으로 넘겨 다시 묻지 않는다.
  */
 
+/**
+ * 저장할 원문 길이 상한. 본문 전체는 2단계 추출에 그대로 쓰고, DB와 폼에는
+ * 이만큼만 남긴다. (공고 한 건이 수십만 자면 폼 textarea가 사용 불가능해진다)
+ */
+const RAW_CONTENT_LIMIT = 20_000;
+
 export interface ParseDeps {
   fetchPage: (url: string) => Promise<FetchedPage>;
   extractMetadata: (html: string) => PageMetadata;
@@ -114,13 +120,17 @@ export async function parseJobPosting(
 
   const missing = missingFields(fields);
 
+  if (metadata.text.length > RAW_CONTENT_LIMIT) {
+    warnings.push("공고 원문이 길어 앞부분만 저장합니다.");
+  }
+
   return {
     url: page.finalUrl,
     source,
     ...fields,
     // 파싱이 다 실패해도 본문은 저장해 둔다. 나중에 페이지가 내려가거나
     // 스킬을 다시 추출할 때 다시 긁지 않아도 된다.
-    rawContent: metadata.text || null,
+    rawContent: metadata.text.slice(0, RAW_CONTENT_LIMIT) || null,
     strategy: missing.length === PARSED_FIELDS.length ? "manual" : strategy,
     missing,
     warnings,

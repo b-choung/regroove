@@ -30,6 +30,13 @@ export const PARSED_FIELDS = [
 ] as const;
 export type ParsedField = (typeof PARSED_FIELDS)[number];
 
+export const PARSED_FIELD_LABELS: Record<ParsedField, string> = {
+  title: "공고 제목",
+  company: "회사명",
+  deadline: "마감일",
+  requiredSkills: "기술스택",
+};
+
 export interface ParsedJobPosting {
   url: string;
   source: JobSource;
