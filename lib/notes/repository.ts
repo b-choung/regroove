@@ -42,10 +42,7 @@ export async function createNote(
 }
 
 /** 삭제된 행이 있으면 true, 대상이 없거나 남의 메모면 false. */
-export async function deleteNote(
-  client: Client,
-  id: string,
-): Promise<boolean> {
+export async function deleteNote(client: Client, id: string): Promise<boolean> {
   const { data, error } = await client
     .from("notes")
     .delete()
