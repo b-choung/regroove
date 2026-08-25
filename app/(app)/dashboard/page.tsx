@@ -3,7 +3,7 @@ import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { AppHeader } from "@/components/layout/app-header";
 
 export const metadata: Metadata = {
-  title: "대시보드 · Regroove",
+  title: "대시보드",
 };
 
 export default function DashboardPage() {

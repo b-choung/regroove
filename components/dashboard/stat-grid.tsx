@@ -17,7 +17,11 @@ export function StatGrid({ stats }: { stats: DashboardStats }) {
     {
       label: "마감 임박",
       value: stats.dueSoon.length,
-      hint: `D-${DUE_SOON_DAYS} 이내`,
+      // 임박 0건인데 아래 카드에 "마감 지남"이 쌓여 있으면 숫자가 거짓말처럼 보인다.
+      hint:
+        stats.overdue.length > 0
+          ? `D-${DUE_SOON_DAYS} 이내 · 지남 ${stats.overdue.length}건`
+          : `D-${DUE_SOON_DAYS} 이내`,
     },
   ];
 
