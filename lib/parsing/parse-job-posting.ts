@@ -1,3 +1,5 @@
+// cheerio·Anthropic SDK를 끌어오는 체인의 입구. 클라이언트에서 import 하면 빌드 실패.
+import "server-only";
 import {
   extractWithClaude as defaultExtractWithClaude,
   isClaudeConfigured as defaultIsClaudeConfigured,
@@ -15,6 +17,7 @@ import {
   type FetchedPage,
 } from "@/lib/parsing/fetch-page";
 import { detectSource } from "@/lib/parsing/source";
+import { RAW_CONTENT_MAX } from "@/types/job-posting";
 import {
   PARSED_FIELDS,
   type ParsedField,
@@ -41,8 +44,11 @@ import {
 /**
  * 저장할 원문 길이 상한. 본문 전체는 2단계 추출에 그대로 쓰고, DB와 폼에는
  * 이만큼만 남긴다. (공고 한 건이 수십만 자면 폼 textarea가 사용 불가능해진다)
+ *
+ * 입력 스키마의 상한과 같은 값을 써야 한다. 여기서 자른 결과가 곧 폼의 초기값이고,
+ * 그 값이 다시 jobPostingInputSchema를 통과해야 하기 때문이다.
  */
-const RAW_CONTENT_LIMIT = 20_000;
+const RAW_CONTENT_LIMIT = RAW_CONTENT_MAX;
 
 export interface ParseDeps {
   fetchPage: (url: string) => Promise<FetchedPage>;

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { publicEnv } from "@/lib/env";
+import { publicEnv } from "@/lib/env/public";
 import type { Database } from "@/types/database";
 
 /** 인증 없이 접근 가능한 경로 프리픽스 */
