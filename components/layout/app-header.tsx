@@ -1,6 +1,8 @@
 import { AddJobPostingButton } from "@/components/job-posting/add-job-posting-button";
+import { AppNav } from "@/components/layout/app-nav";
 import { SkillProfileButton } from "@/components/skills/skill-profile-button";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 /**
@@ -21,7 +23,9 @@ export async function AppHeader({ title }: { title: string }) {
         <p className="text-sm text-muted-foreground">{user?.email}</p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <AppNav />
+        <Separator orientation="vertical" className="h-5" />
         <SkillProfileButton />
         <AddJobPostingButton />
         <form action="/auth/signout" method="post">
