@@ -43,11 +43,11 @@ export function DashboardOverview() {
 
   if (!stats || stats.total === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border bg-card p-10">
+        <p className="text-body text-muted-foreground">
           공고를 등록하면 지원 통계를 보여줍니다.
         </p>
-        <Button size="sm" onClick={openCreateDialog}>
+        <Button onClick={openCreateDialog}>
           <PlusIcon />첫 공고 추가하기
         </Button>
       </div>
@@ -55,10 +55,10 @@ export function DashboardOverview() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <StatGrid stats={stats} />
 
-      <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid items-start gap-5 lg:grid-cols-2 xl:grid-cols-3">
         <FunnelCard funnel={stats.funnel} />
         <DeadlineCard
           overdue={stats.overdue}
@@ -73,15 +73,15 @@ export function DashboardOverview() {
 
 function OverviewSkeleton() {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
-          <Skeleton key={index} className="h-24 w-full" />
+          <Skeleton key={index} className="h-24 w-full rounded-lg" />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton key={index} className="h-48 w-full" />
+          <Skeleton key={index} className="h-52 w-full rounded-lg" />
         ))}
       </div>
     </div>

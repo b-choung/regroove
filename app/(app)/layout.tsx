@@ -8,7 +8,7 @@ import { BoardDialogs } from "@/components/job-posting/board-dialogs";
  */
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6">
+    <main className="flex flex-1 flex-col gap-7 p-6 lg:p-8">
       {children}
       <BoardDialogs />
     </main>

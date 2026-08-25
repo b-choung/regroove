@@ -128,7 +128,7 @@ export function JobPostingForm({
     // noValidate: type="url"/type="date"의 브라우저 기본 검증이 제출을 먼저 막으면
     // 우리 zod 메시지가 뜰 기회가 없다. 입력 타입은 모바일 키보드용으로만 남기고
     // 검증 메시지는 스키마 한 곳에서 관리한다.
-    <form id={formId} onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form id={formId} onSubmit={handleSubmit} className="space-y-5" noValidate>
       <Field
         id={fieldId("company")}
         label="회사명"
@@ -171,7 +171,7 @@ export function JobPostingForm({
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <Field
           id={fieldId("deadline")}
           label="마감일"
@@ -274,20 +274,20 @@ interface FieldProps {
 
 function Field({ id, label, error, hint, optional, children }: FieldProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Label htmlFor={id} className="gap-1.5">
         {label}
         {optional && (
-          <span className="text-xs font-normal text-muted-foreground">
+          <span className="text-caption font-normal text-muted-foreground">
             (선택)
           </span>
         )}
       </Label>
       {children}
       {error ? (
-        <p className="text-xs text-destructive">{error}</p>
+        <p className="text-caption text-destructive">{error}</p>
       ) : (
-        hint && <p className="text-xs text-muted-foreground">{hint}</p>
+        hint && <p className="text-caption text-muted-foreground">{hint}</p>
       )}
     </div>
   );

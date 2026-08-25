@@ -41,7 +41,7 @@ export function LoginForm() {
 
   if (isSent) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         <span className="font-medium text-foreground">{email}</span> 로 로그인
         링크를 보냈습니다. 메일함을 확인해주세요.
       </p>

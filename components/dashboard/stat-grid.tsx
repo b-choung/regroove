@@ -26,18 +26,19 @@ export function StatGrid({ stats }: { stats: DashboardStats }) {
   ];
 
   return (
-    <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <dl className="grid grid-cols-2 gap-5 lg:grid-cols-4">
       {items.map((item) => (
         <Card key={item.label} size="sm">
           <CardContent className="space-y-1">
-            <dt className="text-xs text-muted-foreground">{item.label}</dt>
-            <dd className="text-2xl font-semibold tabular-nums">
+            <dt className="text-caption text-muted-foreground">{item.label}</dt>
+            {/* 화면에서 가장 큰 글자는 제목이 아니라 이 숫자다. */}
+            <dd className="text-display font-semibold tabular-nums">
               {item.value}
-              <span className="ml-1 text-sm font-normal text-muted-foreground">
+              <span className="ml-1 text-caption font-normal text-muted-foreground">
                 건
               </span>
             </dd>
-            <p className="text-xs text-muted-foreground">{item.hint}</p>
+            <p className="text-caption text-muted-foreground">{item.hint}</p>
           </CardContent>
         </Card>
       ))}

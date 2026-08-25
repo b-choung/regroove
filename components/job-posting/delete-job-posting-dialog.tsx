@@ -55,7 +55,7 @@ export function DeleteJobPostingDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-body text-muted-foreground">
           이 공고에 남긴 메모까지 함께 지워지고, 되돌릴 수 없습니다.
         </p>
 

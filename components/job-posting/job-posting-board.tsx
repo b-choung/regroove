@@ -123,11 +123,11 @@ export function JobPostingBoard() {
   return (
     <>
       {jobPostings.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border bg-card p-10">
+          <p className="text-body text-muted-foreground">
             아직 등록한 공고가 없습니다.
           </p>
-          <Button size="sm" onClick={openCreateDialog}>
+          <Button onClick={openCreateDialog}>
             <PlusIcon />첫 공고 추가하기
           </Button>
         </div>
@@ -141,7 +141,7 @@ export function JobPostingBoard() {
         onDragEnd={handleDragEnd}
         onDragCancel={() => setDragging(null)}
       >
-        <div className="grid flex-1 grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid flex-1 grid-cols-1 items-start gap-x-3 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {KANBAN_COLUMNS.map((column) => (
             <KanbanColumn
               key={column.status}
@@ -152,12 +152,10 @@ export function JobPostingBoard() {
           ))}
         </div>
 
+        {/* 기울이지 않는다. 떠 있다는 신호는 그림자 한 단계로 충분하다. */}
         <DragOverlay>
           {dragging && (
-            <JobPostingCard
-              jobPosting={dragging}
-              className="rotate-1 shadow-lg"
-            />
+            <JobPostingCard jobPosting={dragging} className="shadow-overlay" />
           )}
         </DragOverlay>
       </DndContext>
@@ -175,12 +173,9 @@ function BoardSkeleton() {
   return (
     <div className="grid flex-1 grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {KANBAN_COLUMNS.map((column) => (
-        <div
-          key={column.status}
-          className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-3"
-        >
-          <h2 className="text-sm font-medium">{column.label}</h2>
-          <Skeleton className="h-24 w-full" />
+        <div key={column.status} className="flex flex-col gap-2.5 p-2">
+          <h2 className="px-1.5 text-body font-semibold">{column.label}</h2>
+          <Skeleton className="h-28 w-full rounded-lg" />
         </div>
       ))}
     </div>

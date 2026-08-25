@@ -38,18 +38,21 @@ export function JobPostingCard({
   return (
     <article
       className={cn(
-        "flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-xs",
+        // 평상시 카드에는 그림자가 없다. 떠 있는 건 드래그 중인 카드뿐이다.
+        "flex flex-col gap-2.5 rounded-lg border border-border bg-card p-3.5",
         className,
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <button
           type="button"
-          className="flex-1 space-y-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="flex-1 space-y-0.5 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
           onClick={() => selectJobPosting(jobPosting.id)}
         >
-          <p className="text-xs text-muted-foreground">{jobPosting.company}</p>
-          <p className="text-sm leading-snug font-medium">{jobPosting.title}</p>
+          <p className="text-caption text-muted-foreground">
+            {jobPosting.company}
+          </p>
+          <p className="text-body font-medium">{jobPosting.title}</p>
         </button>
         <div className="flex shrink-0 items-center">
           <Button
@@ -69,7 +72,7 @@ export function JobPostingCard({
       <SkillMatchBadge requiredSkills={jobPosting.requiredSkills} />
 
       {jobPosting.requiredSkills.length > 0 && (
-        <ul className="flex flex-wrap gap-1">
+        <ul className="flex flex-wrap gap-1.5">
           {jobPosting.requiredSkills.slice(0, VISIBLE_SKILLS).map((skill) => (
             <li key={skill}>
               <Badge variant="secondary">{skill}</Badge>
@@ -83,7 +86,7 @@ export function JobPostingCard({
         </ul>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-caption text-muted-foreground">
         <span>{JOB_SOURCE_LABELS[jobPosting.source]}</span>
         {jobPosting.deadline && (
           <DeadlineText

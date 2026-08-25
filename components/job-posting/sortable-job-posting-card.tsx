@@ -43,7 +43,7 @@ export function SortableJobPostingCard({
           <button
             type="button"
             aria-label={`${jobPosting.title} 카드 옮기기`}
-            className="-m-1 cursor-grab touch-none rounded-md p-1 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 active:cursor-grabbing"
+            className="inline-flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 active:cursor-grabbing"
             {...attributes}
             {...listeners}
           >

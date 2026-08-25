@@ -22,8 +22,8 @@ export function QueryError({
   const isSetupProblem = isApiError(error) && error.code === "schema_missing";
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center">
-      <p className="text-sm text-muted-foreground">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-card p-10 text-center">
+      <p className="text-body text-muted-foreground">
         {isApiError(error) ? error.message : fallbackMessage}
       </p>
       {!isSetupProblem && (
