@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2Icon } from "lucide-react";
+import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,15 +81,23 @@ export function JobPostingNotes({ jobPostingId }: { jobPostingId: string }) {
                 {formatCreatedAt(note.createdAt)}
               </p>
             </div>
+            {/*
+              지우는 중인 메모만 잠근다. mutation 하나를 목록 전체가 공유하므로
+              isPending만 보면 다른 메모의 삭제 버튼까지 같이 비활성화된다.
+            */}
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
               aria-label="메모 삭제"
-              disabled={remove.isPending}
+              disabled={remove.isPending && remove.variables === note.id}
               onClick={() => remove.mutate(note.id)}
             >
-              <Trash2Icon className="text-muted-foreground" />
+              {remove.isPending && remove.variables === note.id ? (
+                <Loader2Icon className="animate-spin text-muted-foreground" />
+              ) : (
+                <Trash2Icon className="text-muted-foreground" />
+              )}
             </Button>
           </li>
         ))}
