@@ -1,18 +1,9 @@
 "use client";
 
-import { ExternalLinkIcon } from "lucide-react";
-import { toast } from "sonner";
+import { ExternalLinkIcon, Trash2Icon } from "lucide-react";
 import { SkillMatchBadge } from "@/components/skills/skill-match-badge";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useUpdateJobPosting } from "@/hooks/use-job-postings";
-import { isApiError } from "@/lib/api/errors";
+import { Button } from "@/components/ui/button";
 import {
   deadlineLabel,
   deadlineTone,
@@ -22,8 +13,6 @@ import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
 import {
   JOB_SOURCE_LABELS,
-  JOB_STATUS_LABELS,
-  KANBAN_COLUMNS,
   type JobPosting,
   type JobStatus,
 } from "@/types/job-posting";
@@ -42,27 +31,7 @@ export function JobPostingCard({
   className?: string;
 }) {
   const selectJobPosting = useUiStore((state) => state.selectJobPosting);
-  const { mutate, isPending } = useUpdateJobPosting();
-
-  function handleStatusChange(status: JobStatus) {
-    if (status === jobPosting.status) return;
-
-    mutate(
-      {
-        id: jobPosting.id,
-        // position은 서버가 새 컬럼 맨 아래로 계산한다. (2주차 드래그에서만 직접 지정)
-        patch: { status, expectedUpdatedAt: jobPosting.updatedAt },
-      },
-      {
-        onError: (error) => {
-          if (isApiError(error) && error.code === "conflict") return;
-          toast.error("상태를 변경하지 못했습니다.", {
-            description: error.message,
-          });
-        },
-      },
-    );
-  }
+  const requestDelete = useUiStore((state) => state.requestDeleteJobPosting);
 
   const hiddenSkillCount = jobPosting.requiredSkills.length - VISIBLE_SKILLS;
 
@@ -82,7 +51,19 @@ export function JobPostingCard({
           <p className="text-xs text-muted-foreground">{jobPosting.company}</p>
           <p className="text-sm leading-snug font-medium">{jobPosting.title}</p>
         </button>
-        {handle}
+        <div className="flex shrink-0 items-center">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            aria-label={`${jobPosting.title} 공고 삭제`}
+            className="text-muted-foreground hover:text-destructive"
+            onClick={() => requestDelete(jobPosting.id)}
+          >
+            <Trash2Icon />
+          </Button>
+          {handle}
+        </div>
       </div>
 
       <SkillMatchBadge requiredSkills={jobPosting.requiredSkills} />
@@ -122,25 +103,6 @@ export function JobPostingCard({
           </a>
         )}
       </div>
-
-      {/* 드래그의 대체 수단. 좁은 화면·키보드에서는 손잡이보다 이쪽이 빠르다. */}
-      <Select
-        items={JOB_STATUS_LABELS}
-        value={jobPosting.status}
-        onValueChange={(value) => handleStatusChange(value as JobStatus)}
-        disabled={isPending}
-      >
-        <SelectTrigger size="sm" className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {KANBAN_COLUMNS.map((column) => (
-            <SelectItem key={column.status} value={column.status}>
-              {column.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
     </article>
   );
 }

@@ -13,6 +13,8 @@ interface UiState {
   draggingJobPostingId: string | null;
   /** 내 스킬 프로필 편집 모달 열림 여부 */
   isSkillProfileDialogOpen: boolean;
+  /** 삭제 확인을 기다리는 공고 id (없으면 null) */
+  pendingDeleteJobPostingId: string | null;
 
   openCreateDialog: () => void;
   closeCreateDialog: () => void;
@@ -20,6 +22,11 @@ interface UiState {
   closeSkillProfileDialog: () => void;
   selectJobPosting: (id: string | null) => void;
   setDraggingJobPosting: (id: string | null) => void;
+  /**
+   * 삭제 확인 모달을 연다. 상세 모달이 열려 있으면 닫는다 —
+   * 모달 두 개가 동시에 포커스를 잡으면 탭 이동이 엉킨다.
+   */
+  requestDeleteJobPosting: (id: string | null) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -27,6 +34,7 @@ export const useUiStore = create<UiState>((set) => ({
   selectedJobPostingId: null,
   draggingJobPostingId: null,
   isSkillProfileDialogOpen: false,
+  pendingDeleteJobPostingId: null,
 
   openCreateDialog: () => set({ isCreateDialogOpen: true }),
   closeCreateDialog: () => set({ isCreateDialogOpen: false }),
@@ -34,4 +42,10 @@ export const useUiStore = create<UiState>((set) => ({
   closeSkillProfileDialog: () => set({ isSkillProfileDialogOpen: false }),
   selectJobPosting: (id) => set({ selectedJobPostingId: id }),
   setDraggingJobPosting: (id) => set({ draggingJobPostingId: id }),
+  requestDeleteJobPosting: (id) =>
+    set(
+      id === null
+        ? { pendingDeleteJobPostingId: null }
+        : { pendingDeleteJobPostingId: id, selectedJobPostingId: null },
+    ),
 }));

@@ -1,6 +1,7 @@
 "use client";
 
 import { CreateJobPostingDialog } from "@/components/job-posting/create-job-posting-dialog";
+import { DeleteJobPostingDialog } from "@/components/job-posting/delete-job-posting-dialog";
 import { EditJobPostingDialog } from "@/components/job-posting/edit-job-posting-dialog";
 import { SkillProfileDialog } from "@/components/skills/skill-profile-dialog";
 
@@ -17,6 +18,7 @@ export function BoardDialogs() {
     <>
       <CreateJobPostingDialog />
       <EditJobPostingDialog />
+      <DeleteJobPostingDialog />
       <SkillProfileDialog />
     </>
   );

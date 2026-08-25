@@ -10,8 +10,8 @@ import type { JobPosting } from "@/types/job-posting";
 /**
  * 카드에 드래그 기능만 얹는 래퍼.
  *
- * 카드 안에 버튼·링크·Select가 있어서 카드 전체를 드래그 대상으로 만들면
- * 클릭이 드래그로 오인된다. 그래서 전용 손잡이만 드래그 리스너를 갖는다.
+ * 카드 안에 상세 열기·삭제 버튼과 원문 링크가 있어서 카드 전체를 드래그 대상으로
+ * 만들면 클릭이 드래그로 오인된다. 그래서 전용 손잡이만 드래그 리스너를 갖는다.
  */
 export function SortableJobPostingCard({
   jobPosting,
