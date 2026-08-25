@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useUiStore } from "@/stores/ui-store";
@@ -72,6 +72,7 @@ beforeEach(() => {
     isCreateDialogOpen: false,
     selectedJobPostingId: null,
     draggingJobPostingId: null,
+    pendingDeleteJobPostingId: null,
   });
 
   stubApi();
@@ -79,20 +80,21 @@ beforeEach(() => {
 
 /** 보드는 공고 목록·스킬 프로필을, 상세 다이얼로그는 메모를 각각 요청한다. */
 function stubApi({ skills = [] as string[] } = {}) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (path: string) => {
-      if (path.endsWith("/notes")) return Response.json({ notes });
-      if (path.includes("/api/skill-profile")) {
-        return Response.json({
-          skillProfile: skills.length
-            ? { userId: "u", skills, experienceYears: 3 }
-            : null,
-        });
-      }
-      return Response.json({ jobPostings });
-    }),
-  );
+  const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
+    if (init?.method === "DELETE") return new Response(null, { status: 204 });
+    if (path.endsWith("/notes")) return Response.json({ notes });
+    if (path.includes("/api/skill-profile")) {
+      return Response.json({
+        skillProfile: skills.length
+          ? { userId: "u", skills, experienceYears: 3 }
+          : null,
+      });
+    }
+    return Response.json({ jobPostings });
+  });
+
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
 }
 
 afterEach(() => {
@@ -160,6 +162,58 @@ describe("JobPostingBoard", () => {
     await waitFor(() =>
       expect(screen.getByLabelText("회사명")).toHaveValue("토스"),
     );
+  });
+
+  // 손잡이 바로 옆 버튼이라 실수로 누를 수 있고 되돌리기가 없다.
+  it("카드에서 삭제를 누르면 확인을 받고 지운다", async () => {
+    const fetchMock = stubApi();
+    const user = renderBoard();
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "프론트엔드 개발자 공고 삭제",
+      }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("공고를 삭제할까요?");
+    expect(dialog).toHaveTextContent("토스 · 프론트엔드 개발자");
+
+    await user.click(within(dialog).getByRole("button", { name: "삭제" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        `/api/job-postings/${jobPostings[0].id}`,
+        expect.objectContaining({ method: "DELETE" }),
+      ),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText("프론트엔드 개발자")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText("웹 프론트엔드")).toBeInTheDocument();
+  });
+
+  it("확인 모달에서 취소하면 지우지 않는다", async () => {
+    const fetchMock = stubApi();
+    const user = renderBoard();
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "프론트엔드 개발자 공고 삭제",
+      }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "취소" }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ method: "DELETE" }),
+    );
+    expect(screen.getByText("프론트엔드 개발자")).toBeInTheDocument();
   });
 
   it("상세 다이얼로그에서 그 공고의 메모를 보여준다", async () => {

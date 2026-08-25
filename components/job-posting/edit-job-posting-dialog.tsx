@@ -17,11 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  useDeleteJobPosting,
-  useJobPostings,
-  useUpdateJobPosting,
-} from "@/hooks/use-job-postings";
+import { useJobPostings, useUpdateJobPosting } from "@/hooks/use-job-postings";
 import { isApiError } from "@/lib/api/errors";
 import { useUiStore } from "@/stores/ui-store";
 import type { JobPosting, JobPostingInput } from "@/types/job-posting";
@@ -36,7 +32,7 @@ export function EditJobPostingDialog() {
   const jobPosting =
     data?.find((candidate) => candidate.id === selectedId) ?? null;
   const update = useUpdateJobPosting();
-  const remove = useDeleteJobPosting();
+  const requestDelete = useUiStore((state) => state.requestDeleteJobPosting);
 
   function close() {
     selectJobPosting(null);
@@ -69,19 +65,15 @@ export function EditJobPostingDialog() {
     );
   }
 
-  function handleDelete() {
+  /** 삭제는 카드와 같은 확인 모달이 맡는다. 이 모달은 스토어가 함께 닫는다. */
+  function handleDeleteRequest() {
     if (!jobPosting) return;
 
-    remove.mutate(jobPosting.id, {
-      onSuccess: close,
-      onError: (error) =>
-        toast.error("공고를 삭제하지 못했습니다.", {
-          description: error.message,
-        }),
-    });
+    update.reset();
+    requestDelete(jobPosting.id);
   }
 
-  const isBusy = update.isPending || remove.isPending;
+  const isBusy = update.isPending;
 
   return (
     <Dialog
@@ -122,7 +114,7 @@ export function EditJobPostingDialog() {
             type="button"
             variant="ghost"
             className="text-destructive hover:text-destructive"
-            onClick={handleDelete}
+            onClick={handleDeleteRequest}
             disabled={isBusy}
           >
             삭제

@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Regroove",
+  // 페이지가 title만 주면 "대시보드 · Regroove"로 합쳐진다.
+  title: { default: "Regroove", template: "%s · Regroove" },
   description: "여러 채용 사이트의 공고를 한곳에 모아 칸반보드로 관리합니다.",
 };
 
