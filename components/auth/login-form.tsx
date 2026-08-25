@@ -8,9 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+/**
+ * 로그인 콜백이 실패했을 때 안내할 문구.
+ *
+ * 코드만 받아 여기서 문구로 바꾼다. 콜백이 넘긴 텍스트를 그대로 그리면 URL로
+ * 아무 문구나 띄울 수 있다. 모르는 코드는 일반 문구로 흘린다.
+ */
+const CALLBACK_ERRORS: Record<string, string> = {
+  missing_code:
+    "로그인 링크가 올바르지 않습니다. 메일의 링크를 다시 눌러주세요.",
+  exchange_failed:
+    "로그인 링크가 만료되었거나 이미 사용되었습니다. 새 링크를 받아주세요.",
+};
+
 export function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
+  const errorCode = searchParams.get("error");
+  const callbackError = errorCode
+    ? (CALLBACK_ERRORS[errorCode] ?? "로그인을 완료하지 못했습니다.")
+    : null;
   const [email, setEmail] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
@@ -50,6 +67,11 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {callbackError && (
+        <p className="rounded-md bg-destructive-subtle px-3 py-2 text-caption text-destructive">
+          {callbackError}
+        </p>
+      )}
       <div className="space-y-2">
         <Label htmlFor="email">이메일</Label>
         <Input
