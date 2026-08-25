@@ -19,3 +19,24 @@ export function serverEnv() {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   });
 }
+
+const demoEnvSchema = z.object({
+  DEMO_EMAIL: z.email(),
+  DEMO_PASSWORD: z.string().min(1),
+});
+
+/**
+ * 데모 계정 자격증명. 설정하지 않았으면 null이고, 그러면 로그인 화면에서
+ * "둘러보기" 버튼이 아예 나타나지 않는다. (환경변수 미설정 = 기능 비활성)
+ *
+ * 비밀번호는 서버에서만 읽는다. NEXT_PUBLIC_으로 두면 브라우저 번들에 박혀
+ * 누구나 Supabase에 직접 로그인할 수 있게 된다.
+ */
+export function demoCredentials() {
+  const parsed = demoEnvSchema.safeParse({
+    DEMO_EMAIL: process.env.DEMO_EMAIL,
+    DEMO_PASSWORD: process.env.DEMO_PASSWORD,
+  });
+
+  return parsed.success ? parsed.data : null;
+}
