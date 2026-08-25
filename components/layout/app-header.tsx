@@ -18,9 +18,10 @@ export async function AppHeader({ title }: { title: string }) {
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p className="text-sm text-muted-foreground">{user?.email}</p>
+      <div className="space-y-0.5">
+        {/* 제목은 화면에서 가장 큰 글자를 차지하지 않는다. 그 자리는 숫자 몫이다. */}
+        <h1 className="text-heading font-semibold tracking-tight">{title}</h1>
+        <p className="text-caption text-muted-foreground">{user?.email}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

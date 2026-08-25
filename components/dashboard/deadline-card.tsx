@@ -37,7 +37,7 @@ export function DeadlineCard({
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {overdue.length > 0 && (
           <DeadlineGroup
             title="마감 지남"
@@ -59,7 +59,7 @@ export function DeadlineCard({
         )}
 
         {overdue.length === 0 && dueSoon.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             일주일 안에 마감하는 공고가 없습니다.
           </p>
         )}
@@ -85,7 +85,7 @@ function DeadlineGroup({
 
   return (
     <section className="space-y-2">
-      <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+      <h3 className="flex items-center gap-1.5 text-caption font-medium text-muted-foreground">
         {icon}
         {title}
         <span className="tabular-nums">({jobPostings.length})</span>
@@ -97,13 +97,13 @@ function DeadlineGroup({
             <button
               type="button"
               onClick={() => selectJobPosting(jobPosting.id)}
-              className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40"
             >
               <span className="min-w-0">
-                <span className="block truncate text-sm">
+                <span className="block truncate text-body">
                   {jobPosting.title}
                 </span>
-                <span className="block truncate text-xs text-muted-foreground">
+                <span className="block truncate text-caption text-muted-foreground">
                   {jobPosting.company} · {JOB_STATUS_LABELS[jobPosting.status]}
                 </span>
               </span>

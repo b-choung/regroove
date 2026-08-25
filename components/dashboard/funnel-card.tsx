@@ -31,23 +31,23 @@ export function FunnelCard({ funnel }: { funnel: FunnelStats }) {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {funnel.applied === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             아직 지원 완료로 옮긴 공고가 없습니다.
           </p>
         ) : (
           <>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {stages.map((stage) => (
-                <li key={stage.label} className="space-y-1">
-                  <div className="flex items-baseline justify-between text-sm">
+                <li key={stage.label} className="space-y-1.5">
+                  <div className="flex items-baseline justify-between text-body">
                     <span>{stage.label}</span>
                     <span className="tabular-nums">{stage.count}건</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full bg-primary/70"
+                      className="h-full rounded-full bg-primary"
                       style={{
                         width: `${(stage.count / funnel.applied) * 100}%`,
                       }}
@@ -57,7 +57,7 @@ export function FunnelCard({ funnel }: { funnel: FunnelStats }) {
               ))}
             </ul>
 
-            <dl className="grid grid-cols-2 gap-4 border-t pt-4">
+            <dl className="grid grid-cols-2 gap-4 border-t pt-5">
               <Rate
                 label="서류 통과율"
                 rate={funnel.documentPassRate}
@@ -74,7 +74,7 @@ export function FunnelCard({ funnel }: { funnel: FunnelStats }) {
 
         {/* 숫자만 보여주면 "왜 result 공고가 빠졌는지" 알 수 없다. */}
         {funnel.excludedResults > 0 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-caption text-muted-foreground">
             결과 컬럼의 {funnel.excludedResults}건은 어느 단계에서 끝났는지 알
             수 없어 비율 계산에서 제외했습니다.
           </p>
@@ -95,11 +95,11 @@ function Rate({
 }) {
   return (
     <div className="space-y-1">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-xl font-semibold tabular-nums">
+      <dt className="text-caption text-muted-foreground">{label}</dt>
+      <dd className="text-display font-semibold tabular-nums">
         {/* 분모가 0이면 0%가 아니라 계산 불가다. 0%는 실패한 것처럼 읽힌다. */}
         {rate === null ? "—" : `${Math.round(rate * 100)}%`}
-        <span className="ml-1 text-xs font-normal text-muted-foreground">
+        <span className="ml-1.5 text-caption font-normal text-muted-foreground">
           {detail}
         </span>
       </dd>

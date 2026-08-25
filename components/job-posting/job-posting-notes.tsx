@@ -32,8 +32,8 @@ export function JobPostingNotes({ jobPostingId }: { jobPostingId: string }) {
   }
 
   return (
-    <section className="space-y-3 border-t pt-4">
-      <h3 className="text-sm font-medium">메모</h3>
+    <section className="space-y-3 border-t pt-5">
+      <h3 className="text-body font-semibold">메모</h3>
 
       <form onSubmit={handleSubmit} className="space-y-2">
         <Textarea
@@ -58,22 +58,26 @@ export function JobPostingNotes({ jobPostingId }: { jobPostingId: string }) {
       {isPending && <Skeleton className="h-12 w-full" />}
 
       {isError && (
-        <p className="text-xs text-destructive">메모를 불러오지 못했습니다.</p>
+        <p className="text-caption text-destructive">
+          메모를 불러오지 못했습니다.
+        </p>
       )}
 
       {data?.length === 0 && (
-        <p className="text-xs text-muted-foreground">아직 메모가 없습니다.</p>
+        <p className="text-caption text-muted-foreground">
+          아직 메모가 없습니다.
+        </p>
       )}
 
       <ul className="space-y-2">
         {data?.map((note) => (
           <li
             key={note.id}
-            className="flex items-start justify-between gap-2 rounded-md bg-muted/50 p-2.5"
+            className="flex items-start justify-between gap-2 rounded-lg bg-muted p-3"
           >
             <div className="space-y-1">
-              <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-body whitespace-pre-wrap">{note.content}</p>
+              <p className="text-caption text-muted-foreground">
                 {formatCreatedAt(note.createdAt)}
               </p>
             </div>

@@ -21,29 +21,32 @@ export function SkillMatchSummary({
   const percent = toPercent(rate);
 
   return (
-    <section className="space-y-2 border-t pt-4">
+    <section className="space-y-2.5 border-t pt-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">스킬 매칭</h3>
+        <h3 className="text-body font-semibold">스킬 매칭</h3>
         {percent !== null && mySkills.length > 0 && (
-          <span className="text-sm font-medium tabular-nums">{percent}%</span>
+          <span className="text-body font-semibold tabular-nums">
+            {percent}%
+          </span>
         )}
       </div>
 
       {percent === null ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-caption text-muted-foreground">
           이 공고에 기술스택 정보가 없습니다.
         </p>
       ) : mySkills.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-caption text-muted-foreground">
           헤더의 &quot;내 스킬&quot;에서 기술스택을 등록하면 매칭률을
           보여줍니다.
         </p>
       ) : (
-        <ul className="flex flex-wrap gap-1">
+        <ul className="flex flex-wrap gap-1.5">
           {matched.map((skill) => (
             <li key={skill}>
-              <Badge variant="secondary" className="gap-1">
-                <CheckIcon className="size-3 text-emerald-600" />
+              {/* 겹치는 스택만 포인트 컬러. 없는 스택은 점선 테두리로 비운다. */}
+              <Badge variant="subtle" className="gap-1">
+                <CheckIcon className="size-3" />
                 {skill}
               </Badge>
             </li>

@@ -106,8 +106,8 @@ function ProfileFields({
   }
 
   return (
-    <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-4" noValidate>
-      <div className="space-y-2">
+    <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-5" noValidate>
+      <div className="space-y-1.5">
         <Label htmlFor="skill-profile-skills">기술스택</Label>
         <Textarea
           id="skill-profile-skills"
@@ -116,13 +116,13 @@ function ProfileFields({
           placeholder="TypeScript, React, Next.js, Node.js"
           rows={4}
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-caption text-muted-foreground">
           쉼표로 구분합니다. 표기가 달라도(React.js / 리액트) 같은 스택으로
           인식합니다.
         </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <Label htmlFor="skill-profile-years">경력 (년)</Label>
         <Input
           id="skill-profile-years"

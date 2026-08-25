@@ -27,12 +27,13 @@ export function ParseNotice({ parsed }: { parsed: ParsedJobPosting }) {
   const isFilled = parsed.strategy !== "manual";
 
   return (
-    <div className="space-y-2 rounded-lg border bg-muted/40 p-3 text-xs">
+    <div className="space-y-2 rounded-lg border border-border bg-muted p-3.5 text-caption">
       <p className="flex items-center gap-1.5 font-medium">
+        {/* 초록·주황 대신 팔레트 안의 두 색으로. 성공은 포인트, 실패는 경고색이다. */}
         {isFilled ? (
-          <CheckCircle2Icon className="size-3.5 text-emerald-600" />
+          <CheckCircle2Icon className="size-3.5 text-primary" />
         ) : (
-          <TriangleAlertIcon className="size-3.5 text-amber-600" />
+          <TriangleAlertIcon className="size-3.5 text-destructive" />
         )}
         {STRATEGY_LABELS[parsed.strategy]}
         {parsed.strategy === "llm" && (
@@ -51,7 +52,7 @@ export function ParseNotice({ parsed }: { parsed: ParsedJobPosting }) {
       )}
 
       {parsed.warnings.map((warning) => (
-        <p key={warning} className="text-amber-700 dark:text-amber-500">
+        <p key={warning} className="font-medium text-foreground">
           {warning}
         </p>
       ))}

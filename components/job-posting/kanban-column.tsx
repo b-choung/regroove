@@ -34,15 +34,17 @@ export function KanbanColumn({
       // 스크린리더에서 "관심 컬럼"처럼 건너다닐 수 있게 한다.
       aria-labelledby={`column-${status}`}
       className={cn(
-        "flex min-h-32 flex-col gap-2 rounded-lg border bg-muted/30 p-3 transition-colors",
-        isOver && "border-primary/50 bg-primary/5",
+        // 컬럼은 배경도 테두리도 없다. 컬럼 안에 카드가 들어가면 박스가 두 겹이
+        // 되어 6개 컬럼이 회색 블록 6개로 읽혔다. 떠 있는 건 카드뿐이다.
+        "flex min-h-32 flex-col gap-2.5 rounded-lg p-2 transition-colors",
+        isOver && "bg-primary-subtle",
       )}
     >
-      <header className="flex items-center justify-between">
-        <h2 id={`column-${status}`} className="text-sm font-medium">
+      <header className="flex items-center justify-between gap-2 px-1.5 pt-0.5">
+        <h2 id={`column-${status}`} className="text-body font-semibold">
           {label}
         </h2>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-caption text-muted-foreground tabular-nums">
           {jobPostings.length}
         </span>
       </header>
@@ -57,7 +59,7 @@ export function KanbanColumn({
       </SortableContext>
 
       {jobPostings.length === 0 && (
-        <p className="flex flex-1 items-center justify-center rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+        <p className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border p-4 text-caption text-muted-foreground">
           여기로 카드를 옮겨 보세요
         </p>
       )}
