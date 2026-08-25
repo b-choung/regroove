@@ -229,6 +229,25 @@ npm run typecheck
 npm run lint
 ```
 
+## 배포 (Vercel)
+
+1. GitHub 저장소를 Vercel에 임포트합니다. Next.js 프리셋 그대로 두면 빌드 설정을 만질 필요가 없습니다.
+2. Project Settings > Environment Variables에 `.env.example`과 같은 이름으로 세 값을 넣습니다.
+3. Supabase 대시보드 > Authentication > URL Configuration에 배포 주소를 등록합니다.
+   - Site URL: `https://<도메인>`
+   - Redirect URLs: `https://<도메인>/auth/callback` (프리뷰 배포까지 쓰려면 `https://<프로젝트>-*.vercel.app/auth/callback`도 함께)
+4. 새 Supabase 프로젝트를 쓴다면 `supabase/migrations/`의 SQL을 SQL Editor에서 실행합니다.
+
+**배포했는데 로그인 링크가 localhost로 온다면** 3번을 건너뛴 것입니다. Supabase는 매직링크의 `emailRedirectTo`를 허용 목록과 대조해서, 목록에 없으면 에러 대신 조용히 Site URL로 바꿉니다.
+
+`ANTHROPIC_API_KEY`는 없어도 배포가 됩니다. 파싱 체인 2단계(LLM 추출)만 꺼지고 메타데이터 → 수동 입력으로 넘어갑니다.
+
+푸시 전 로컬 확인:
+
+```bash
+npm test && npm run typecheck && npm run lint && npm run build
+```
+
 ## 스크린샷 / 데모
 
 > 배포 후 실제 사용 화면 스크린샷과 데모 GIF를 이곳에 추가합니다.
