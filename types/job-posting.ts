@@ -80,6 +80,21 @@ export interface UserSkillProfile {
 // ---------------------------------------------------------------------------
 
 /**
+ * 길이 상한.
+ *
+ * 폼에서는 넘기기 어려운 값이지만 API는 직접 호출할 수 있다. 상한이 없으면
+ * 공고 하나로 DB와 화면을 동시에 망가뜨릴 수 있어서 스키마에서 막는다.
+ * RAW_CONTENT_MAX는 파싱 결과를 자르는 기준과 같은 값을 써야 한다
+ * (자른 결과가 다시 이 스키마를 통과해야 하므로 `lib/parsing`이 이 값을 가져다 쓴다).
+ */
+export const RAW_CONTENT_MAX = 20_000;
+const TEXT_MAX = 200;
+const URL_MAX = 2_000;
+const SKILL_MAX = 60;
+const SKILL_COUNT_MAX = 50;
+const NOTE_MAX = 2_000;
+
+/**
  * 공고 필드 정의(기본값 없음).
  *
  * 기본값은 생성용 스키마에서만 얹는다. `.partial()`은 `.default()`를 벗기지 않아서
@@ -87,17 +102,46 @@ export interface UserSkillProfile {
  * 나머지 필드가 기본값으로 채워져 url·deadline·메모가 통째로 초기화된다.
  */
 const jobPostingFields = {
-  url: z.string().url("올바른 URL이 아닙니다.").nullable(),
-  company: z.string().min(1, "회사명을 입력해주세요."),
-  title: z.string().min(1, "공고 제목을 입력해주세요."),
+  url: z
+    .string()
+    .url("올바른 URL이 아닙니다.")
+    .max(URL_MAX, `URL은 ${URL_MAX}자까지 입력할 수 있습니다.`)
+    .nullable(),
+  company: z
+    .string()
+    .min(1, "회사명을 입력해주세요.")
+    .max(TEXT_MAX, `회사명은 ${TEXT_MAX}자까지 입력할 수 있습니다.`),
+  title: z
+    .string()
+    .min(1, "공고 제목을 입력해주세요.")
+    .max(TEXT_MAX, `공고 제목은 ${TEXT_MAX}자까지 입력할 수 있습니다.`),
   deadline: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 형식이어야 합니다.")
     .nullable(),
-  requiredSkills: z.array(z.string().min(1)),
+  requiredSkills: z
+    .array(
+      z
+        .string()
+        .min(1)
+        .max(
+          SKILL_MAX,
+          `기술스택 하나는 ${SKILL_MAX}자까지 입력할 수 있습니다.`,
+        ),
+    )
+    .max(
+      SKILL_COUNT_MAX,
+      `기술스택은 ${SKILL_COUNT_MAX}개까지 담을 수 있습니다.`,
+    ),
   status: z.enum(JOB_STATUSES),
   source: z.enum(JOB_SOURCES),
-  rawContent: z.string().nullable(),
+  rawContent: z
+    .string()
+    .max(
+      RAW_CONTENT_MAX,
+      `공고 원문은 ${RAW_CONTENT_MAX.toLocaleString("ko-KR")}자까지 저장합니다.`,
+    )
+    .nullable(),
 };
 
 export const jobPostingInputSchema = z.object({
@@ -131,7 +175,13 @@ export const jobPostingUpdateSchema = z
 export type JobPostingUpdate = z.infer<typeof jobPostingUpdateSchema>;
 
 export const userSkillProfileInputSchema = z.object({
-  skills: z.array(z.string().min(1)).default([]),
+  skills: z
+    .array(z.string().min(1).max(SKILL_MAX))
+    .max(
+      SKILL_COUNT_MAX * 2,
+      `스킬은 ${SKILL_COUNT_MAX * 2}개까지 등록할 수 있습니다.`,
+    )
+    .default([]),
   experienceYears: z
     .number()
     .min(0, "경력은 0년 이상이어야 합니다.")
@@ -142,7 +192,13 @@ export const userSkillProfileInputSchema = z.object({
 export type UserSkillProfileInput = z.infer<typeof userSkillProfileInputSchema>;
 
 export const noteInputSchema = z.object({
-  content: z.string().min(1, "메모 내용을 입력해주세요."),
+  content: z
+    .string()
+    .min(1, "메모 내용을 입력해주세요.")
+    .max(
+      NOTE_MAX,
+      `메모는 ${NOTE_MAX.toLocaleString("ko-KR")}자까지 쓸 수 있습니다.`,
+    ),
 });
 
 export type NoteInput = z.infer<typeof noteInputSchema>;

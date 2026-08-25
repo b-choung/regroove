@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { QueryError } from "@/components/layout/query-error";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,7 +31,7 @@ const FORM_ID = "skill-profile-form";
 export function SkillProfileDialog() {
   const isOpen = useUiStore((state) => state.isSkillProfileDialogOpen);
   const close = useUiStore((state) => state.closeSkillProfileDialog);
-  const { data, isPending } = useSkillProfile();
+  const { data, isPending, isError, error, refetch } = useSkillProfile();
   const save = useSaveSkillProfile();
 
   function handleSave(input: UserSkillProfileInput) {
@@ -59,21 +60,33 @@ export function SkillProfileDialog() {
         */}
         {isPending ? (
           <Skeleton className="h-40 w-full" />
+        ) : isError ? (
+          /*
+            조회 실패를 빈 폼으로 보여주면 "등록한 적 없음"과 구분되지 않는다.
+            그 상태에서 저장을 누르면 기존 스택이 빈 배열로 덮어써진다.
+          */
+          <QueryError
+            error={error}
+            fallbackMessage="스킬 프로필을 불러오지 못했습니다."
+            onRetry={() => refetch()}
+          />
         ) : (
           <ProfileFields profile={data ?? null} onSubmit={handleSave} />
         )}
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={close}>
-            취소
+            {isError ? "닫기" : "취소"}
           </Button>
-          <Button
-            type="submit"
-            form={FORM_ID}
-            disabled={isPending || save.isPending}
-          >
-            {save.isPending ? "저장 중..." : "저장"}
-          </Button>
+          {!isError && (
+            <Button
+              type="submit"
+              form={FORM_ID}
+              disabled={isPending || save.isPending}
+            >
+              {save.isPending ? "저장 중..." : "저장"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

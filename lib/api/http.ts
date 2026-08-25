@@ -1,3 +1,4 @@
+import "server-only";
 import { NextResponse } from "next/server";
 import { z, type ZodType } from "zod";
 import type { ApiErrorBody, ApiErrorCode } from "@/lib/api/errors";

@@ -35,17 +35,18 @@
 
 ## 기술 스택
 
-| 영역           | 선택                              | 이유                                               |
-| -------------- | --------------------------------- | -------------------------------------------------- |
-| 프레임워크     | Next.js (App Router) + TypeScript | 표준 스택, SSR로 초기 로딩 최적화                  |
-| DB / 인증      | Supabase (Postgres)               | 인증까지 한 번에 해결, 학습 곡선 낮음              |
-| 드래그앤드롭   | dnd-kit                           | 유지보수 중단된 react-beautiful-dnd 대신 현재 표준 |
-| 상태관리       | Zustand + TanStack Query          | 로컬 UI 상태와 서버 상태를 명확히 분리             |
-| 파싱           | Cheerio (JSON-LD → OG 우선)       | 사이트별 마크업 차이에 대응하는 폴백 구조          |
-| 스킬 매칭/요약 | Claude API                        | 공고 본문에서 기술스택 자동 추출 및 요약           |
-| 스타일         | Tailwind CSS v4 + shadcn/ui       | 토큰을 CSS `@theme` 한 곳에서 관리                 |
-| 폰트           | Pretendard (자체 호스팅)          | 한글·라틴·숫자를 한 폰트로. Geist는 라틴 전용      |
-| 배포           | Vercel                            | 무료, 간단한 배포 파이프라인                       |
+| 영역           | 선택                              | 이유                                                  |
+| -------------- | --------------------------------- | ----------------------------------------------------- |
+| 프레임워크     | Next.js (App Router) + TypeScript | 표준 스택, SSR로 초기 로딩 최적화                     |
+| DB / 인증      | Supabase (Postgres)               | 인증까지 한 번에 해결, 학습 곡선 낮음                 |
+| 드래그앤드롭   | dnd-kit                           | 유지보수 중단된 react-beautiful-dnd 대신 현재 표준    |
+| 상태관리       | Zustand + TanStack Query          | 로컬 UI 상태와 서버 상태를 명확히 분리                |
+| 파싱           | Cheerio (JSON-LD → OG 우선)       | 사이트별 마크업 차이에 대응하는 폴백 구조             |
+| 스킬 매칭/요약 | Claude API                        | 공고 본문에서 기술스택 자동 추출 및 요약              |
+| 스타일         | Tailwind CSS v4 + shadcn/ui       | 토큰을 CSS `@theme` 한 곳에서 관리                    |
+| 폰트           | Pretendard (자체 호스팅)          | 한글·라틴·숫자를 한 폰트로. Geist는 라틴 전용         |
+| 서버 경계      | server-only                       | 서버 전용 모듈을 클라이언트에서 import 하면 빌드 실패 |
+| 배포           | Vercel                            | 무료, 간단한 배포 파이프라인                          |
 
 ## 데이터 모델
 
@@ -89,7 +90,7 @@ UserSkillProfile
 | GET    | `/api/skill-profile`           | 내 스킬 프로필 (없으면 null)        |
 | PUT    | `/api/skill-profile`           | 내 스킬 프로필 저장 (upsert)        |
 
-실패 응답은 `{ error: { code, message, fields? } }` 형태로 통일했고, 클라이언트는 HTTP status 대신 `code`(`unauthorized`, `invalid_request`, `not_found`, `conflict`, `duplicate_url`, `internal_error`)로 분기합니다.
+실패 응답은 `{ error: { code, message, fields? } }` 형태로 통일했고, 클라이언트는 HTTP status 대신 `code`(`unauthorized`, `invalid_request`, `not_found`, `conflict`, `duplicate_url`, `schema_missing`, `internal_error`)로 분기합니다. 응답 자체가 오지 않은 실패(`timeout`, `network`)는 클라이언트가 같은 형태로 만들어 화면이 한 가지 경로로만 에러를 다루게 합니다.
 
 ### 동시 편집 충돌 (낙관적 잠금)
 
@@ -270,6 +271,32 @@ Cheerio로 본문 텍스트를 만들 때 `script`, `style`을 지웠는데, JSO
 ### 12. 분모가 0인 비율은 0%가 아니다
 
 지원한 공고가 없으면 서류 통과율이 `0/0`입니다. 여기서 `0%`를 찍으면 "아직 계산할 수 없다"와 "지원했지만 전부 떨어졌다"가 같은 화면으로 보입니다. 비율은 `number | null`로 두고 `null`은 `—`로 그립니다. 3주차 스킬 매칭에서 "요구 스택이 없는 공고의 매칭률"을 `null`로 둔 것과 같은 규칙입니다.
+
+### 13. 서버 전용 코드가 클라이언트 번들에 실려 있었다 (배포 전 점검)
+
+`lib/env.ts` 한 파일에 `publicEnv()`와 `serverEnv()`를 나란히 두고 "서버 함수는 클라이언트에서 부르지 않는다"는 주석으로 경계를 지키고 있었습니다. 그런데 클라이언트용 Supabase 클라이언트가 `publicEnv`를 import 하는 순간 **모듈 전체**가 브라우저 번들에 들어갑니다. 실제로 프로덕션 청크에서 `ANTHROPIC_API_KEY: z.string().min(1…)` 문자열이 나왔습니다. (키 값 자체는 빌드 산출물 전수 검색 결과 0건 — Next가 `NEXT_PUBLIC_` 없는 값을 치환하지 않기 때문입니다)
+
+`lib/env/public.ts` / `lib/env/server.ts`로 쪼개고 후자에 `import "server-only"`를 붙여, 클라이언트에서 import 하면 **빌드가 실패**하게 바꿨습니다. 주석으로 지키던 규칙을 컴파일러가 지키게 만든 셈입니다. 테스트는 Node에서 서버 모듈을 그대로 불러오므로 vitest에서 `server-only`를 빈 모듈로 alias 했습니다.
+
+### 14. 조회 실패가 "데이터 없음"으로 보이면 저장이 데이터를 지운다 (배포 전 점검)
+
+스킬 프로필 다이얼로그가 `useQuery`의 `isError`를 버리고 `data`만 봤습니다. GET이 실패하면 `data`가 `undefined`라서 **"등록한 적 없는 사용자"와 화면이 완전히 같아지고**, 그 빈 폼에서 저장을 누르면 PUT이 기존 스택을 빈 배열로 덮어씁니다. 로딩·성공만 다루고 실패를 성공의 한 종류로 흘려보낸 것이 원인이었습니다.
+
+읽기 실패는 쓰기를 막아야 합니다. 실패 시 폼 대신 재시도 안내를 띄우고 저장 버튼을 감췄습니다.
+
+### 15. URL 쿼리의 에러 메시지를 그대로 그리면 안 된다 (배포 전 점검)
+
+인증 콜백이 실패 시 `/login?error=<Supabase 원문 메시지>`로 리다이렉트했는데, 로그인 화면은 그 값을 아예 읽지 않아서 만료된 매직링크를 눌러도 아무 설명 없는 폼만 보였습니다. 배포 직후 Redirect URL을 잘못 넣으면 정확히 이 증상이 나옵니다.
+
+고치면서 원문 메시지를 넘기던 것도 바꿨습니다. URL의 텍스트를 화면이 그대로 그리면 남이 만든 링크로 아무 문구나 띄울 수 있습니다(피싱). 콜백은 코드(`missing_code`, `exchange_failed`)만 넘기고 문구는 화면이 정하며, 모르는 코드는 일반 문구로 흘립니다.
+
+### 16. 타임아웃 없는 fetch와 상한 없는 입력 (배포 전 점검)
+
+서버 쪽은 외부 페이지 fetch 10초·Claude 60초로 막아 뒀는데 클라이언트 `fetch`에는 `AbortSignal`이 없어서, 파싱 요청이 1분 넘게 "불러오는 중..."에 갇힐 수 있었습니다. 기본 15초, 파싱만 75초(서버 상한보다 살짝 길게)로 두고 응답 없는 실패도 `ApiError`로 감쌌습니다 — 그러지 않으면 화면에 "Failed to fetch"가 그대로 나옵니다.
+
+zod 스키마에도 길이 상한이 없었습니다. 폼으로는 넘기기 어렵지만 API는 직접 호출할 수 있습니다. 특히 원문(`rawContent`)은 파싱이 20,000자로 자르는데 스키마에는 상한이 없어 기준이 두 곳에 흩어져 있었습니다. 상한 상수를 `types/job-posting.ts`로 옮겨 파싱과 API가 같은 값을 쓰게 했습니다 — 갈라지면 "잘라서 저장한 값이 다시 저장되지 않는" 상태가 됩니다.
+
+이 밖에 에러 경계(`error.tsx`·`global-error.tsx`·`not-found.tsx`)가 없어 렌더 예외가 스타일 없는 기본 화면으로 뜨던 것, 메모 하나를 지우는 동안 목록 전체의 삭제 버튼이 잠기던 것(mutation 하나를 목록이 공유하므로 `variables`로 대상을 가려야 합니다)도 함께 고쳤습니다.
 
 ## 주차별 개발 계획
 
