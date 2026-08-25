@@ -13,6 +13,11 @@ import {
 } from "@/components/ui/select";
 import { useUpdateJobPosting } from "@/hooks/use-job-postings";
 import { isApiError } from "@/lib/api/errors";
+import {
+  deadlineLabel,
+  deadlineTone,
+  todayInSeoul,
+} from "@/lib/job-postings/deadline";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
 import {
@@ -99,7 +104,12 @@ export function JobPostingCard({
 
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span>{JOB_SOURCE_LABELS[jobPosting.source]}</span>
-        {jobPosting.deadline && <span>마감 {jobPosting.deadline}</span>}
+        {jobPosting.deadline && (
+          <DeadlineText
+            deadline={jobPosting.deadline}
+            status={jobPosting.status}
+          />
+        )}
         {jobPosting.url && (
           <a
             href={jobPosting.url}
@@ -113,7 +123,7 @@ export function JobPostingCard({
         )}
       </div>
 
-      {/* 2주차에 드래그앤드롭이 들어오기 전까지 카드를 옮기는 유일한 수단. */}
+      {/* 드래그의 대체 수단. 좁은 화면·키보드에서는 손잡이보다 이쪽이 빠르다. */}
       <Select
         items={JOB_STATUS_LABELS}
         value={jobPosting.status}
@@ -132,5 +142,34 @@ export function JobPostingCard({
         </SelectContent>
       </Select>
     </article>
+  );
+}
+
+/**
+ * 마감일. 임박·초과일 때만 D-day를 덧붙여 강조한다.
+ *
+ * 날짜만 나열하면 급한 공고가 눈에 들어오지 않는다. 결과가 나온 공고는 마감일이
+ * 지났어도 할 일이 아니므로 강조하지 않는다.
+ */
+function DeadlineText({
+  deadline,
+  status,
+}: {
+  deadline: string;
+  status: JobStatus;
+}) {
+  const today = todayInSeoul();
+  const tone = status === "result" ? "normal" : deadlineTone(deadline, today);
+
+  return (
+    <span
+      className={cn(
+        tone === "overdue" && "font-medium text-destructive",
+        tone === "due-soon" && "font-medium text-foreground",
+      )}
+    >
+      마감 {deadline}
+      {tone !== "normal" && ` · ${deadlineLabel(deadline, today)}`}
+    </span>
   );
 }
