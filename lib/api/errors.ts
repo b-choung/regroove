@@ -13,7 +13,10 @@ export type ApiErrorCode =
   | "duplicate_url"
   /** DB 스키마가 없음 = 마이그레이션 미적용. 코드 버그가 아니라 설치 문제다. */
   | "schema_missing"
-  | "internal_error";
+  | "internal_error"
+  /** 아래 둘은 서버가 주는 코드가 아니라 클라이언트가 만든다. (응답이 없는 실패) */
+  | "timeout"
+  | "network";
 
 export interface ApiErrorBody {
   error: {
