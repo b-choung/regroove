@@ -4,125 +4,141 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * 디자인 토큰.
+ *
+ * Tailwind v4는 config 파일 없이 CSS에서 테마를 정의한다. 그래서 tailwind.config.ts가
+ * 아니라 여기가 토큰의 단일 출처다.
+ *
+ * 규칙 세 줄:
+ * - 색은 아래 세 계열(중립 / primary / destructive)만 쓴다. 새 색을 컴포넌트에서
+ *   즉석으로 만들지 않는다.
+ * - radius는 md(버튼·입력) / lg(카드·패널) / xl(다이얼로그) 세 단계 + 배지만 full.
+ * - 그림자는 떠 있는 층(다이얼로그·팝오버·드래그 중 카드)에만 shadow-overlay 한 단계.
+ *   평상시 표면은 1px 테두리로만 구분한다.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  /* 활성 탭·강조 배지처럼 "포인트 컬러의 배경 버전"이 필요한 자리 */
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-subtle-foreground: var(--primary-subtle-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-pretendard), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  /*
+   * 타이포 4단. 이름이 용도를 말하게 해서 12px 캡션이 파일마다 text-xs로 흩어지지
+   * 않게 한다. 섹션 제목은 크기를 키우지 않고 굵기(font-semibold)로만 구분한다.
+   */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.0625rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.3125rem;
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.625rem;
+  --text-display: 1.5rem;
+  --text-display--line-height: 1.8125rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --shadow-overlay:
+    0 12px 32px -12px oklch(0.24 0.012 264 / 0.22),
+    0 2px 8px -4px oklch(0.24 0.012 264 / 0.12);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  /* 중립: 순수 흑백 대신 264°로 아주 살짝 기울여 포인트 컬러와 같은 계열에 둔다. */
+  --background: oklch(0.985 0.002 264); /* #f9fafb 캔버스 */
+  --foreground: oklch(0.24 0.012 264); /* #1c1f25 본문 */
+  --card: oklch(1 0 0); /* #ffffff 표면 */
+  --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.968 0.004 264); /* #f3f4f7 표면 보조 */
+  --muted-foreground: oklch(0.53 0.014 264); /* #686c74 보조 텍스트 */
+  --secondary: oklch(0.968 0.004 264);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.968 0.004 264); /* 메뉴·항목 hover 배경(중립) */
+  --accent-foreground: var(--foreground);
+  --border: oklch(0.918 0.006 264); /* #e2e4e8 */
+  --input: var(--border);
+
+  /* 포인트: 주 CTA, 활성 탭, 막대, 드롭 대상, 포커스 링에만 쓴다. */
+  --primary: oklch(0.52 0.155 266); /* #3e61c1 흰 글씨 대비 5.7:1 */
+  --primary-hover: oklch(0.46 0.15 266); /* #3050aa */
+  --primary-foreground: oklch(1 0 0);
+  --primary-subtle: oklch(0.955 0.02 266); /* #eaf0fe */
+  --primary-subtle-foreground: oklch(0.46 0.15 266);
+  --ring: var(--primary);
+
+  --destructive: oklch(0.55 0.19 25); /* #c92f33 */
+  --destructive-foreground: oklch(1 0 0);
+  --destructive-subtle: oklch(0.955 0.02 25);
+
+  --radius: 0.5rem;
 }
 
+/*
+ * 다크 토큰은 같은 규칙으로 맞춰 두지만, 지금 ThemeProvider가 없어 실제로 켜지지는
+ * 않는다. (토글은 이번 범위 밖)
+ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.19 0.008 264);
+  --foreground: oklch(0.96 0.003 264);
+  --card: oklch(0.235 0.009 264);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.235 0.009 264);
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.28 0.01 264);
+  --muted-foreground: oklch(0.7 0.012 264);
+  --secondary: oklch(0.28 0.01 264);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.28 0.01 264);
+  --accent-foreground: var(--foreground);
+  --border: oklch(0.3 0.011 264);
+  --input: var(--border);
+
+  --primary: oklch(0.66 0.14 266);
+  --primary-hover: oklch(0.72 0.13 266);
+  --primary-foreground: oklch(0.19 0.02 266);
+  --primary-subtle: oklch(0.3 0.05 266);
+  --primary-subtle-foreground: oklch(0.85 0.06 266);
+  --ring: var(--primary);
+
+  --destructive: oklch(0.66 0.17 25);
+  --destructive-foreground: oklch(0.19 0.02 25);
+  --destructive-subtle: oklch(0.3 0.06 25);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/40;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-body text-foreground;
   }
   html {
     @apply font-sans;
