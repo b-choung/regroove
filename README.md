@@ -8,25 +8,30 @@
 
 ## 핵심 기능
 
-### 1. 공고 등록
+### 1. 로그인
+
+- 이메일 매직링크 (본인 사용)
+- **가입 없이 둘러보기** — 예시 데이터가 담긴 데모 계정으로 즉시 접속 (메일 인증 없음)
+
+### 2. 공고 등록
 
 - URL을 붙여넣으면 페이지를 파싱해 제목, 회사명, 기술스택, 마감일을 자동으로 추출
 - 자동 파싱이 실패하면 수동 입력 폼으로 대체
 
-### 2. 지원 상태 관리 (칸반보드)
+### 3. 지원 상태 관리 (칸반보드)
 
 - 컬럼: 관심 → 지원 준비 → 지원 완료 → 서류 합격 → 면접 → 결과
 - 드래그 앤 드롭으로 카드 상태 이동 (낙관적 업데이트, 실패 시 롤백)
 - 카드 클릭 시 상세 정보와 메모(면접 일정, 담당자 연락처 등) 확인
 - 카드에서 바로 삭제 (확인 모달을 거치고, 메모는 FK cascade로 함께 삭제)
 
-### 3. 기술스택 매칭
+### 4. 기술스택 매칭
 
 - 본인의 기술스택을 미리 등록
 - 공고에서 추출한 기술스택과 비교해 매칭률(%) 표시
 - 매칭되지 않는 스택 하이라이트
 
-### 4. 대시보드
+### 5. 대시보드
 
 - 요약: 전체 공고, 진행 중, 최근 7일 추가, 마감 임박 건수
 - 지원 단계 전환: 단계별 누적 건수와 서류 통과율·면접 전환율
@@ -298,6 +303,29 @@ zod 스키마에도 길이 상한이 없었습니다. 폼으로는 넘기기 어
 
 이 밖에 에러 경계(`error.tsx`·`global-error.tsx`·`not-found.tsx`)가 없어 렌더 예외가 스타일 없는 기본 화면으로 뜨던 것, 메모 하나를 지우는 동안 목록 전체의 삭제 버튼이 잠기던 것(mutation 하나를 목록이 공유하므로 `variables`로 대상을 가려야 합니다)도 함께 고쳤습니다.
 
+### 17. 배포하고 나서야 드러난 매직링크 함정 세 개
+
+배포 직후 로그인이 연달아 막혔습니다. 세 문제가 겹쳐 있었는데, 공통점은 **전부 코드가 아니라 Supabase 설정**이고 **증상이 원인을 가리키지 않는다**는 점이었습니다.
+
+**① 메일 링크가 내 도메인이 아닌 곳으로 갔다.** 배포 주소는 `regroove-navy.vercel.app`인데 링크는 `regroove.com`(제3자가 판매 중인 주차 도메인)으로 연결됐습니다. Redirect URLs에 배포 주소가 없으면 Supabase는 `emailRedirectTo`를 **거부하지도, 알려주지도 않고** Site URL로 대체합니다. 로그인 실패가 아니라 "다른 사이트로 이동"으로 나타나기 때문에 원인을 앱에서 찾게 됩니다. `@supabase/ssr`은 PKCE라 `code_verifier`가 브라우저에만 있어 코드가 새어도 세션을 만들 수는 없지만, 인증 코드가 남의 서버 로그에 남는 건 그대로 문제입니다.
+
+**② `email rate limit exceeded`.** 내장 메일 서비스는 **시간당 2통**이고 내장 서비스로는 이 값을 올릴 수 없습니다(커스텀 SMTP 연결이 전제). ①을 확인하려고 재발송을 누르는 동안 한도가 사라졌습니다. 로그인 화면에서 이 경우(HTTP 429 / `over_email_send_rate_limit`)를 따로 잡아 "최대 1시간 후 재시도"로 안내합니다.
+
+**③ `Error sending magic link` (HTTP 500).** 커스텀 SMTP를 붙인 뒤 나온 에러입니다. 화면 메시지에도, edge 로그에도 원인이 없고 **Logs > Auth**의 `error` 필드에만 SMTP 응답이 남습니다. 실제 값은 `535 Invalid username` — Resend는 SMTP 사용자명이 모든 계정에서 `resend` 고정이고 계정 식별은 비밀번호 자리의 API 키로 합니다. Supabase 입력칸 이름이 "Username"이라 이메일을 넣게 되는 함정입니다. 그 다음 벽은 발신 도메인 검증이었습니다 — 미검증 상태에서는 Resend 계정 소유자 주소로만 발송됩니다.
+
+배운 것: **상태 코드가 층을 가리킨다.** 429는 한도, 500은 SMTP, "엉뚱한 도메인으로 이동"은 허용 목록. 그리고 조용한 폴백(①)이 가장 비쌉니다 — 실패를 실패로 알려주지 않는 설정이 디버깅 시간을 다 먹습니다.
+
+### 18. 메일 인증은 포트폴리오 방문자에게 장벽이다
+
+②③을 고쳐도 남는 문제가 있었습니다. 채용 담당자가 링크를 열면 이메일을 입력하고, 메일함을 열고, 링크를 눌러야 화면을 봅니다. 세 단계 어디서든 이탈합니다. 게다가 발신 도메인을 검증하지 않으면 남의 주소로는 메일이 아예 가지 않습니다.
+
+그래서 매직링크는 본인 로그인용으로 남기고, **데모 계정 한 개로 즉시 들어오는 경로**를 따로 뒀습니다.
+
+- 비밀번호는 `DEMO_PASSWORD`(서버 전용)에 두고 `/auth/demo` Route Handler가 `signInWithPassword`로 세션을 만듭니다. `NEXT_PUBLIC_`으로 두면 번들에 박혀 누구나 Supabase에 직접 로그인할 수 있습니다.
+- 버튼은 서버 컴포넌트의 `<form method="post">` 하나라 클라이언트 JS가 없습니다. 환경변수가 없으면 버튼 자체가 렌더되지 않습니다.
+- 데모 데이터는 [supabase/seeds/demo.sql](supabase/seeds/demo.sql)로 넣고, 방문자가 고쳐도 같은 스크립트를 다시 실행하면 복구됩니다. 마감일을 `current_date` 기준 상대값으로 넣어 시간이 지나도 D-day 표시가 살아 있게 했습니다.
+- 데모 계정과 개인 계정의 데이터는 RLS(`auth.uid() = user_id`)로 분리되어 있어 서로 보이지 않습니다.
+
 ## 주차별 개발 계획
 
 | 주차  | 내용                                                         | 상태 |
@@ -328,6 +356,16 @@ cp .env.example .env.local
 npm run dev
 ```
 
+### 데모 계정 (선택)
+
+로그인 화면의 "가입 없이 둘러보기" 버튼용입니다. `DEMO_EMAIL`/`DEMO_PASSWORD`가 비어 있으면 버튼이 아예 표시되지 않습니다.
+
+1. Supabase > Authentication > Users > **Add user**로 계정을 만듭니다(Auto Confirm User 체크).
+2. `.env.local`에 `DEMO_EMAIL`/`DEMO_PASSWORD`를 넣습니다. **`NEXT_PUBLIC_`을 붙이지 않습니다** — 비밀번호가 브라우저 번들에 박힙니다.
+3. [supabase/seeds/demo.sql](supabase/seeds/demo.sql)의 `demo_id`를 그 계정의 User UID로 바꿔 SQL Editor에서 실행합니다. 예시 공고 8건(각 컬럼에 분산)과 메모·스킬 프로필이 들어갑니다.
+
+방문자가 데모 데이터를 고칠 수 있으므로, 원래 상태로 돌리려면 같은 스크립트를 다시 실행하면 됩니다(해당 계정의 공고를 지우고 다시 넣습니다). 마감일은 고정 날짜가 아니라 `current_date` 기준 상대값이라 몇 달 뒤에 열어도 D-day 표시가 의미를 유지합니다.
+
 ```bash
 npm test        # Vitest 단위/컴포넌트 테스트
 npm run typecheck
@@ -337,15 +375,16 @@ npm run lint
 ## 배포 (Vercel)
 
 1. GitHub 저장소를 Vercel에 임포트합니다. Next.js 프리셋 그대로 두면 빌드 설정을 만질 필요가 없습니다.
-2. Project Settings > Environment Variables에 `.env.example`과 같은 이름으로 세 값을 넣습니다.
+2. Project Settings > Environment Variables에 `.env.example`과 같은 이름으로 값을 넣습니다.
 3. Supabase 대시보드 > Authentication > URL Configuration에 배포 주소를 등록합니다.
    - Site URL: `https://<도메인>`
-   - Redirect URLs: `https://<도메인>/auth/callback` (프리뷰 배포까지 쓰려면 `https://<프로젝트>-*.vercel.app/auth/callback`도 함께)
-4. 새 Supabase 프로젝트를 쓴다면 `supabase/migrations/`의 SQL을 SQL Editor에서 실행합니다.
+   - Redirect URLs: `https://<도메인>/**` (콜백 주소에 `?next=`가 붙으므로 경로만 등록하면 어긋날 수 있습니다. 프리뷰 배포까지 쓰려면 `https://<프로젝트>-*-<계정>.vercel.app/**`도 함께. `https://*.vercel.app/**`는 남의 프로젝트까지 허용하므로 쓰지 않습니다)
+4. Supabase > Project Settings > Authentication > SMTP Settings에 **커스텀 SMTP를 연결합니다.** 내장 메일 서비스는 시간당 2통이라 사실상 배포용으로 쓸 수 없습니다.
+5. 새 Supabase 프로젝트를 쓴다면 `supabase/migrations/`의 SQL을 SQL Editor에서 실행합니다.
 
-**배포했는데 로그인 링크가 localhost로 온다면** 3번을 건너뛴 것입니다. Supabase는 매직링크의 `emailRedirectTo`를 허용 목록과 대조해서, 목록에 없으면 에러 대신 조용히 Site URL로 바꿉니다.
+**배포했는데 로그인 링크가 엉뚱한 주소(localhost나 모르는 도메인)로 간다면** 3번 문제입니다. Supabase는 매직링크의 `emailRedirectTo`를 허용 목록과 대조해서, 목록에 없으면 에러 대신 **조용히 Site URL로 바꿉니다.**
 
-`ANTHROPIC_API_KEY`는 없어도 배포가 됩니다. 파싱 체인 2단계(LLM 추출)만 꺼지고 메타데이터 → 수동 입력으로 넘어갑니다.
+`ANTHROPIC_API_KEY`는 없어도 배포가 됩니다. 파싱 체인 2단계(LLM 추출)만 꺼지고 메타데이터 → 수동 입력으로 넘어갑니다. `DEMO_EMAIL`/`DEMO_PASSWORD`도 선택이며, 없으면 "둘러보기" 버튼만 사라집니다. 단 `/login`은 정적으로 미리 렌더되므로 이 두 값을 나중에 추가했다면 **재배포**해야 버튼이 나타납니다.
 
 푸시 전 로컬 확인:
 
@@ -355,10 +394,10 @@ npm test && npm run typecheck && npm run lint && npm run build
 
 ## 스크린샷 / 데모
 
-> 배포 후 실제 사용 화면 스크린샷과 데모 GIF를 이곳에 추가합니다.
-
-- 배포 링크: (추가 예정)
+- 배포 링크: [REGROOVE](https://regroove-navy.vercel.app/) — 로그인 화면의 **"가입 없이 둘러보기"** 를 누르면 예시 데이터가 담긴 데모 계정으로 바로 들어갑니다. 메일 인증이 필요 없습니다.
 - 데모 GIF: (추가 예정)
+
+> 스크린샷은 데모 계정으로 접속한 화면을 올릴 예정입니다.
 
 ## 라이선스
 
