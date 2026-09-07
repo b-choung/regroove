@@ -6,6 +6,12 @@
 
 3년차 프론트엔드 개발자로, 2년의 공백 이후 재취업을 준비하면서 사람인·원티드·잡플래닛 등 여러 사이트에 흩어진 채용 공고를 스프레드시트로 관리하다가 한계를 느껴 직접 만들었습니다. 단순한 튜토리얼 프로젝트가 아니라 실제로 구직 활동에 사용하고 있는 도구입니다.
 
+## 데모
+
+[REGROOVE](https://regroove-navy.vercel.app/) — 로그인 화면의 "가입 없이 둘러보기"를 누르면 가입이나 메일 인증 없이 예시 데이터가 담긴 데모 계정으로 바로 들어갑니다.
+
+![데모 GIF](https://github.com/user-attachments/assets/695ef655-cece-4330-9096-48d9cbf4fd66)
+
 ## 핵심 기능
 
 - **로그인** — 이메일 매직링크(본인용), 가입 없이 예시 데이터로 바로 둘러보는 데모 계정
@@ -118,6 +124,12 @@ cp .env.example .env.local
 npm run dev
 ```
 
+```bash
+npm test          # Vitest — 파싱 폴백·위치 계산·통계 등 순수 로직과 보드 동작
+npm run typecheck
+npm run lint
+```
+
 **데모 계정(선택)**: Supabase에서 유저를 만들고 `.env.local`에 `DEMO_EMAIL`/`DEMO_PASSWORD`를 넣습니다. 비밀번호가 브라우저 번들에 박히므로 `NEXT_PUBLIC_`을 붙이면 안 됩니다. 예시 데이터는 [supabase/seeds/demo.sql](supabase/seeds/demo.sql)로 넣습니다.
 
 ## 배포 (Vercel)
@@ -127,12 +139,6 @@ npm run dev
 3. Supabase > Authentication > URL Configuration에 배포 주소 등록. Redirect URLs에는 `https://<도메인>/**`를 넣습니다 (`https://*.vercel.app/**`는 남의 Vercel 프로젝트까지 허용하므로 쓰지 않습니다)
 4. **커스텀 SMTP 연결** — 내장 메일은 시간당 2통이라 배포용으로 쓸 수 없습니다
 5. 새 Supabase 프로젝트라면 마이그레이션 SQL 실행
-
-## 데모
-
-배포 링크: [REGROOVE](https://regroove-navy.vercel.app/) — 로그인 화면의 "가입 없이 둘러보기"를 누르면 데모 계정으로 바로 들어갑니다.
-
-![데모 GIF](https://github.com/user-attachments/assets/695ef655-cece-4330-9096-48d9cbf4fd66)
 
 ## 라이선스
 
