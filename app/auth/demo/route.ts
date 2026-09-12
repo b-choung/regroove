@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
+import { redirectAfterPost } from "@/lib/auth/redirect";
 import { demoCredentials } from "@/lib/env/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
   const demo = demoCredentials();
 
   if (!demo) {
-    return NextResponse.redirect(`${origin}/login?error=demo_unavailable`);
+    return redirectAfterPost(`${origin}/login?error=demo_unavailable`);
   }
 
   const supabase = await createClient();
@@ -26,8 +27,8 @@ export async function POST(request: NextRequest) {
   if (error) {
     // 계정이 없거나 비밀번호가 바뀐 상황. 원문은 로그로만 남긴다.
     console.error(`[auth] 데모 로그인 실패 — ${error.message}`);
-    return NextResponse.redirect(`${origin}/login?error=demo_failed`);
+    return redirectAfterPost(`${origin}/login?error=demo_failed`);
   }
 
-  return NextResponse.redirect(origin);
+  return redirectAfterPost(origin);
 }
